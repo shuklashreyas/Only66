@@ -135,7 +135,44 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <div className="min-h-screen flex flex-col bg-background text-foreground">
+        <div className="flex-1">
+          <Outlet />
+        </div>
+        <footer className="border-t border-border bg-background/95">
+          <div className="mx-auto flex max-w-5xl flex-col gap-3 px-6 py-4 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
+            <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+              Copyright Shreyas Shukla
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-3 text-xs font-mono uppercase tracking-[0.2em] text-muted-foreground sm:justify-end">
+              <a
+                href="https://www.shuklashreyas.com/"
+                target="_blank"
+                rel="noreferrer"
+                className="transition hover:text-primary"
+              >
+                Website
+              </a>
+              <a
+                href="https://github.com/shuklashreyas"
+                target="_blank"
+                rel="noreferrer"
+                className="transition hover:text-primary"
+              >
+                GitHub
+              </a>
+              <a
+                href="https://www.linkedin.com/in/shreyas-shukla26/"
+                target="_blank"
+                rel="noreferrer"
+                className="transition hover:text-primary"
+              >
+                LinkedIn
+              </a>
+            </div>
+          </div>
+        </footer>
+      </div>
       <Toaster />
     </QueryClientProvider>
   );
