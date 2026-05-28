@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { TOTAL_DAYS, dayNumber, todayIso } from "@/lib/day-math";
 import { pickReminder, pickProtocol, PANIC_LINES, MILESTONES, FINAL_DAY, type Tone } from "@/lib/tone";
 import { pickDailyQuote } from "@/lib/quotes";
-import { getActiveChallengeForUser, getCheckInsForChallenge, getLocalUser, updateChallenge, type LocalChallenge, type LocalCheckIn } from "@/lib/storage";
+import { getActiveChallengeForUser, getCheckInsForChallenge, getLocalUser, updateChallenge, type LocalChallenge, type LocalCheckIn, type LocalUser } from "@/lib/storage";
 import { CheckInModal } from "@/components/dashboard/CheckInModal";
 import { PanicModal } from "@/components/dashboard/PanicModal";
 import { SettingsSheet } from "@/components/dashboard/SettingsSheet";
@@ -32,6 +32,7 @@ function Dashboard() {
   const [showCheckIn, setShowCheckIn] = useState(false);
   const [showPanic, setShowPanic] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [localUser, setLocalUser] = useState<LocalUser | null>(null);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [newlyUnlockedDay, setNewlyUnlockedDay] = useState<number | null>(null);
   const hasInitializedRef = useRef(false);
@@ -56,6 +57,10 @@ function Dashboard() {
   };
 
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    setLocalUser(getLocalUser());
+  }, []);
 
   const today = challenge ? dayNumber(challenge.start_date) : 0;
   const todayDone = useMemo(
@@ -130,7 +135,7 @@ function Dashboard() {
       ? todayDone
       : false;
   const isNewlyUnlocked = newlyUnlockedDay === displayDay;
-  const displayName = getLocalUser()?.displayName?.trim() || null;
+  const displayName = localUser?.displayName?.trim() || null;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -256,7 +261,7 @@ function Dashboard() {
                 return (
                   <div
                     key={d}
-                    className={`${base} ${cls}${isClickable ? " cursor-pointer" : ""}${isSelected && isClickable ? " outline outline-2 outline-offset-1 outline-primary/60" : ""}`}
+                    className={`${base} ${cls}${isClickable ? " cursor-pointer" : ""}${isSelected && isClickable ? " outline-2 outline-offset-1 outline-primary/60" : ""}`}
                     title={`Day ${d}${isFinal ? " — FINAL" : isMilestone ? " — milestone" : ""}`}
                     onClick={isClickable ? () => setSelectedDay(d) : undefined}
                   >
@@ -342,7 +347,7 @@ function TransmissionCard({
 }) {
   const quote = pickDailyQuote(day);
   return (
-    <aside className="rounded-sm border-l-4 border-primary bg-surface p-5 shadow-[0_0_24px_oklch(0.62_0.24_25/0.15)] lg:w-72 xl:w-80 flex-shrink-0">
+    <aside className="rounded-sm border-l-4 border-primary bg-surface p-5 shadow-[0_0_24px_oklch(0.62_0.24_25/0.15)] lg:w-72 xl:w-80 shrink-0">
       <div className="font-mono text-xs uppercase tracking-[0.3em] text-primary mb-4">
         [ DAY {String(day).padStart(2, "0")} TRANSMISSION. ]
       </div>
