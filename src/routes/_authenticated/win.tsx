@@ -31,7 +31,7 @@ function WinPage() {
     if (!userData.user) return;
     await supabase
       .from("challenges")
-      .update({ status: "won" })
+      .update({ status: "completed" })
       .eq("user_id", userData.user.id)
       .eq("status", "active");
     navigate({ to: "/onboarding" });

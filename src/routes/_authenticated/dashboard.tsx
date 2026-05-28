@@ -12,12 +12,12 @@ type Challenge = {
   id: string;
   user_id: string;
   name: string;
-  kind: "build" | "break";
+  kind: "build" | "quit";
   motivation: string | null;
   tone: Tone;
   start_date: string;
   reminder_time: string;
-  status: "active" | "won" | "abandoned";
+  status: "active" | "completed" | "abandoned";
 };
 
 type CheckIn = {
@@ -40,7 +40,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
       .limit(1)
       .maybeSingle();
     if (!data) throw redirect({ to: "/onboarding" });
-    if (data.status === "won") throw redirect({ to: "/win" });
+    if (data.status === "completed") throw redirect({ to: "/win" });
   },
   component: Dashboard,
 });
@@ -110,7 +110,7 @@ function Dashboard() {
   useEffect(() => {
     if (!challenge || loading) return;
     if (survivedCount >= TOTAL_DAYS) {
-      supabase.from("challenges").update({ status: "won" }).eq("id", challenge.id).then(() => {
+      supabase.from("challenges").update({ status: "completed" }).eq("id", challenge.id).then(() => {
         navigate({ to: "/win" });
       });
     }
