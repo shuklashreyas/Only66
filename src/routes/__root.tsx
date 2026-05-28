@@ -123,6 +123,20 @@ function AuthSync() {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
+  useEffect(() => {
+    import("@/lib/sound").then(({ wireGlobalClickSound, playBgm }) => {
+      wireGlobalClickSound();
+      // BGM only starts after a user gesture (browser autoplay rules).
+      const startOnGesture = () => {
+        playBgm();
+        window.removeEventListener("pointerdown", startOnGesture);
+        window.removeEventListener("keydown", startOnGesture);
+      };
+      window.addEventListener("pointerdown", startOnGesture);
+      window.addEventListener("keydown", startOnGesture);
+    });
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthSync />
@@ -131,3 +145,4 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
+
