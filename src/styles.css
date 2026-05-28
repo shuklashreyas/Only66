@@ -139,6 +139,17 @@
 .animate-knight-float { animation: knight-float 5s ease-in-out infinite; }
 .animate-knight-glow { animation: knight-glow 3.5s ease-in-out infinite; }
 
+@keyframes quote-flicker {
+  0%   { opacity: 0; }
+  8%   { opacity: 1; }
+  12%  { opacity: 0.15; }
+  16%  { opacity: 1; }
+  22%  { opacity: 0.55; }
+  28%  { opacity: 1; }
+  100% { opacity: 1; }
+}
+.animate-quote-flicker { animation: quote-flicker 1.8s ease-out forwards; }
+
 /* The 66-Day Wall — perspective survival grid */
 @keyframes wall-glow {
   0%, 100% { opacity: 0.45; transform: scale(1); }

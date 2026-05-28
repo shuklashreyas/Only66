@@ -2,7 +2,7 @@ import { r as reactExports, j as jsxRuntimeExports } from "../_libs/react.mjs";
 import { u as useNavigate, L as Link } from "../_libs/tanstack__react-router.mjs";
 import { t as toast } from "../_libs/sonner.mjs";
 import { d as dayNumber, t as todayIso, T as TOTAL_DAYS } from "./day-math-OKL4F-bz.mjs";
-import { u as updateChallenge, g as getActiveChallengeForUser, e as getCheckInsForChallenge, b as createCheckIn, c as clearLocalUser } from "./router-CKAbYjWb.mjs";
+import { u as updateChallenge, g as getActiveChallengeForUser, e as getCheckInsForChallenge, b as createCheckIn, c as clearLocalUser } from "./router-DXbdypsj.mjs";
 import { isMuted, play, startTick, stopTick, setMuted, playBgm } from "./sound--O_4J7dP.mjs";
 import "../_libs/tanstack__router-core.mjs";
 import "../_libs/tanstack__history.mjs";
@@ -501,6 +501,10 @@ function Dashboard() {
   const [showCheckIn, setShowCheckIn] = reactExports.useState(false);
   const [showPanic, setShowPanic] = reactExports.useState(false);
   const [showSettings, setShowSettings] = reactExports.useState(false);
+  const [selectedDay, setSelectedDay] = reactExports.useState(null);
+  const [newlyUnlockedDay, setNewlyUnlockedDay] = reactExports.useState(null);
+  const hasInitializedRef = reactExports.useRef(false);
+  const prevTodayDoneRef = reactExports.useRef(false);
   const load = () => {
     const ch = getActiveChallengeForUser();
     if (!ch) {
@@ -566,11 +570,29 @@ function Dashboard() {
       });
     }
   }, [survivedCount, challenge, loading, navigate]);
+  reactExports.useEffect(() => {
+    if (loading) return;
+    if (!hasInitializedRef.current) {
+      prevTodayDoneRef.current = todayDone;
+      hasInitializedRef.current = true;
+      return;
+    }
+    if (todayDone && !prevTodayDoneRef.current) {
+      setNewlyUnlockedDay(today);
+      const t = setTimeout(() => setNewlyUnlockedDay(null), 2200);
+      prevTodayDoneRef.current = true;
+      return () => clearTimeout(t);
+    }
+    if (!todayDone) prevTodayDoneRef.current = false;
+  }, [loading, todayDone, today]);
   if (loading || !challenge) {
     return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "min-h-screen bg-background flex items-center justify-center font-mono text-muted-foreground text-sm uppercase tracking-widest", children: "Loading..." });
   }
   const dayMap = /* @__PURE__ */ new Map();
   checkIns.forEach((c) => dayMap.set(c.day_number, c));
+  const displayDay = selectedDay ?? today;
+  const selectedIsUnlocked = displayDay < today ? dayMap.get(displayDay)?.completed === true : displayDay === today ? todayDone : false;
+  const isNewlyUnlocked = newlyUnlockedDay === displayDay;
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "min-h-screen bg-background text-foreground", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("header", { className: "border-b border-border", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mx-auto max-w-5xl px-6 py-4 flex items-center justify-between", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs(Link, { to: "/", className: "font-display text-2xl", children: [
@@ -620,37 +642,42 @@ function Dashboard() {
           /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => setShowPanic(true), className: "rounded-sm border-2 border-primary text-primary px-6 py-3 font-display uppercase tracking-wider hover:bg-primary/10 animate-pulse-red", children: "I'm about to fold" })
         ] })
       ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "font-mono text-xs uppercase tracking-[0.3em] text-muted-foreground mb-3", children: "[ THE 66 ]" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "grid grid-cols-11 gap-1.5 sm:gap-2", children: Array.from({
-          length: TOTAL_DAYS
-        }, (_, i) => i + 1).map((d) => {
-          const c = dayMap.get(d);
-          const isToday = d === today;
-          const isPast = d < today;
-          const survived = !!c?.completed;
-          const violated = isPast && !survived;
-          const isFinal = d === FINAL_DAY;
-          const isMilestone = MILESTONES.has(d) && d !== FINAL_DAY;
-          const base = "aspect-square rounded-sm border flex items-center justify-center font-mono text-[10px] sm:text-xs transition relative";
-          let cls = "";
-          if (survived && isFinal) {
-            cls = "bg-primary border-[color:var(--color-reward)] text-primary-foreground shadow-[0_0_18px_oklch(0.85_0.18_90/0.6)]";
-          } else if (survived) {
-            cls = `bg-primary border-primary text-primary-foreground shadow-[0_0_10px_oklch(0.62_0.24_25/0.55)] ${isMilestone ? "ring-1 ring-[color:var(--color-reward)]" : ""}`;
-          } else if (isToday) {
-            cls = "border-2 border-primary text-primary bg-primary/10 animate-pulse-red";
-          } else if (violated) {
-            cls = "bg-[oklch(0.25_0.08_25)] border-[oklch(0.4_0.12_25)] text-[oklch(0.55_0.12_25)] line-through";
-          } else if (isFinal) {
-            cls = "border-[color:var(--color-reward)]/70 text-[color:var(--color-reward)] bg-[color:var(--color-reward)]/5";
-          } else if (isMilestone) {
-            cls = "border-[color:var(--color-reward)]/40 text-[color:var(--color-reward)]/70 bg-surface";
-          } else {
-            cls = "border-border/40 bg-surface/40 text-muted-foreground/40";
-          }
-          return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `${base} ${cls}`, title: `Day ${d}${isFinal ? " — FINAL" : isMilestone ? " — milestone" : ""}`, children: survived ? isFinal ? "★" : "✓" : d }, d);
-        }) })
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col lg:flex-row lg:items-start gap-6", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: "flex-1 min-w-0", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "font-mono text-xs uppercase tracking-[0.3em] text-muted-foreground mb-3", children: "[ THE 66 ]" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "grid grid-cols-11 gap-1.5 sm:gap-2", children: Array.from({
+            length: TOTAL_DAYS
+          }, (_, i) => i + 1).map((d) => {
+            const c = dayMap.get(d);
+            const isToday = d === today;
+            const isPast = d < today;
+            const survived = !!c?.completed;
+            const violated = isPast && !survived;
+            const isFinal = d === FINAL_DAY;
+            const isMilestone = MILESTONES.has(d) && d !== FINAL_DAY;
+            const isClickable = survived || isToday;
+            const isSelected = d === displayDay;
+            const base = "aspect-square rounded-sm border flex items-center justify-center font-mono text-[10px] sm:text-xs transition relative";
+            let cls = "";
+            if (survived && isFinal) {
+              cls = "bg-primary border-[color:var(--color-reward)] text-primary-foreground shadow-[0_0_18px_oklch(0.85_0.18_90/0.6)]";
+            } else if (survived) {
+              cls = `bg-primary border-primary text-primary-foreground shadow-[0_0_10px_oklch(0.62_0.24_25/0.55)] ${isMilestone ? "ring-1 ring-[color:var(--color-reward)]" : ""}`;
+            } else if (isToday) {
+              cls = "border-2 border-primary text-primary bg-primary/10 animate-pulse-red";
+            } else if (violated) {
+              cls = "bg-[oklch(0.25_0.08_25)] border-[oklch(0.4_0.12_25)] text-[oklch(0.55_0.12_25)] line-through";
+            } else if (isFinal) {
+              cls = "border-[color:var(--color-reward)]/70 text-[color:var(--color-reward)] bg-[color:var(--color-reward)]/5";
+            } else if (isMilestone) {
+              cls = "border-[color:var(--color-reward)]/40 text-[color:var(--color-reward)]/70 bg-surface";
+            } else {
+              cls = "border-border/40 bg-surface/40 text-muted-foreground/40";
+            }
+            return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `${base} ${cls}${isClickable ? " cursor-pointer" : ""}${isSelected && isClickable ? " outline outline-2 outline-offset-1 outline-primary/60" : ""}`, title: `Day ${d}${isFinal ? " — FINAL" : isMilestone ? " — milestone" : ""}`, onClick: isClickable ? () => setSelectedDay(d) : void 0, children: survived ? isFinal ? "★" : "✓" : d }, d);
+          }) })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(TransmissionCard, { day: displayDay, isUnlocked: selectedIsUnlocked, isNewlyUnlocked })
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("section", { className: "grid grid-cols-3 gap-3", children: [["Streak", String(currentStreak(checkIns))], ["Best", String(bestStreak(checkIns))], ["Days left", String(Math.max(0, TOTAL_DAYS - today + 1))]].map(([label, val]) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "rounded-sm border border-border bg-surface p-4", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "font-mono text-xs uppercase tracking-widest text-muted-foreground", children: label }),
@@ -659,15 +686,6 @@ function Dashboard() {
       /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: "rounded-sm border-l-4 border-primary bg-surface p-6", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "font-mono text-xs uppercase tracking-[0.3em] text-primary mb-3", children: "[ TODAY'S PROTOCOL ]" }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "font-display text-2xl uppercase leading-tight", children: pickProtocol(challenge.tone, challenge.kind, challenge.name, today) }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "mt-3 border-t border-border/60 pt-3 font-mono text-xs leading-relaxed text-muted-foreground", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "text-foreground", children: [
-            '"',
-            pickDailyQuote(today).text,
-            '"'
-          ] }),
-          " — ",
-          pickDailyQuote(today).author
-        ] }),
         challenge.motivation && /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "mt-4 font-mono text-xs uppercase tracking-widest text-muted-foreground", children: [
           'Why: "',
           challenge.motivation,
@@ -677,10 +695,48 @@ function Dashboard() {
     ] }),
     showCheckIn && /* @__PURE__ */ jsxRuntimeExports.jsx(CheckInModal, { challenge, day: today, onClose: () => setShowCheckIn(false), onDone: () => {
       setShowCheckIn(false);
+      setSelectedDay(null);
       load();
     } }),
     showPanic && /* @__PURE__ */ jsxRuntimeExports.jsx(PanicModal, { challenge, day: today, message: PANIC_LINES[challenge.tone].replace("{day}", String(survivedCount)), onClose: () => setShowPanic(false), onFold: fold }),
     showSettings && /* @__PURE__ */ jsxRuntimeExports.jsx(SettingsSheet, { challenge, onClose: () => setShowSettings(false), onChanged: load })
+  ] });
+}
+function TransmissionCard({
+  day,
+  isUnlocked,
+  isNewlyUnlocked
+}) {
+  const quote = pickDailyQuote(day);
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("aside", { className: "rounded-sm border-l-4 border-primary bg-surface p-5 shadow-[0_0_24px_oklch(0.62_0.24_25/0.15)] lg:w-72 xl:w-80 flex-shrink-0", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "font-mono text-xs uppercase tracking-[0.3em] text-primary mb-4", children: [
+      "[ DAY ",
+      String(day).padStart(2, "0"),
+      " TRANSMISSION. ]"
+    ] }),
+    isUnlocked ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: isNewlyUnlocked ? "animate-quote-flicker" : "", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "text-lg leading-relaxed text-foreground", children: [
+        "“",
+        quote.text,
+        "”"
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "mt-4 font-mono text-xs text-muted-foreground tracking-wide", children: [
+        "— ",
+        quote.author
+      ] })
+    ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "h-px flex-1 bg-primary/30" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-mono text-[10px] uppercase tracking-[0.3em] text-primary/50", children: "locked" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "h-px flex-1 bg-primary/30" })
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "font-mono text-xs uppercase tracking-widest text-muted-foreground/60 pt-1", children: "TRANSMISSION LOCKED" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "font-mono text-xs text-muted-foreground", children: [
+        "Survive Day ",
+        day,
+        " to unlock."
+      ] })
+    ] })
   ] });
 }
 function currentStreak(cins) {

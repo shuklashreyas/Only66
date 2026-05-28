@@ -33,7 +33,7 @@ const Toaster = ({ ...props }) => {
     }
   );
 };
-const appCss = "/assets/styles-i1Ja6SH3.css";
+const appCss = "/assets/styles-Ci0PVQ0p.css";
 function NotFoundComponent() {
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex min-h-screen items-center justify-center bg-background px-4", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "max-w-md text-center", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "text-7xl font-display text-primary", children: "404" }),
@@ -233,7 +233,7 @@ function createCheckIn(data) {
 function generateId() {
   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
-const $$splitComponentImporter$6 = () => import("./login-CROq_yj0.mjs");
+const $$splitComponentImporter$6 = () => import("./login-D3biVRhN.mjs");
 const Route$6 = createFileRoute("/login")({
   head: () => ({
     meta: [{
@@ -299,7 +299,7 @@ const Route$4 = createFileRoute("/")({
   }),
   component: lazyRouteComponent($$splitComponentImporter$4, "component")
 });
-const $$splitComponentImporter$3 = () => import("./win-C_CLl1ID.mjs");
+const $$splitComponentImporter$3 = () => import("./win-Dx7L__dZ.mjs");
 const Route$3 = createFileRoute("/_authenticated/win")({
   head: () => ({
     meta: [{
@@ -308,7 +308,7 @@ const Route$3 = createFileRoute("/_authenticated/win")({
   }),
   component: lazyRouteComponent($$splitComponentImporter$3, "component")
 });
-const $$splitComponentImporter$2 = () => import("./onboarding-BKGKWao9.mjs");
+const $$splitComponentImporter$2 = () => import("./onboarding-C1i9sXXX.mjs");
 const Route$2 = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
     meta: [{
@@ -326,7 +326,7 @@ const Route$2 = createFileRoute("/_authenticated/onboarding")({
   },
   component: lazyRouteComponent($$splitComponentImporter$2, "component")
 });
-const $$splitComponentImporter$1 = () => import("./folded-CIH1f9xo.mjs");
+const $$splitComponentImporter$1 = () => import("./folded-C9Mx6jIp.mjs");
 const Route$1 = createFileRoute("/_authenticated/folded")({
   head: () => ({
     meta: [{
@@ -346,7 +346,7 @@ const Route$1 = createFileRoute("/_authenticated/folded")({
   },
   component: lazyRouteComponent($$splitComponentImporter$1, "component")
 });
-const $$splitComponentImporter = () => import("./dashboard-F1w__O2j.mjs");
+const $$splitComponentImporter = () => import("./dashboard-DuXpaV46.mjs");
 const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [{

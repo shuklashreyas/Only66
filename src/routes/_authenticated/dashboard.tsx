@@ -1,5 +1,5 @@
 import { createFileRoute, redirect, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { TOTAL_DAYS, dayNumber, todayIso } from "@/lib/day-math";
 import { pickReminder, pickProtocol, PANIC_LINES, MILESTONES, FINAL_DAY, type Tone } from "@/lib/tone";
@@ -32,6 +32,10 @@ function Dashboard() {
   const [showCheckIn, setShowCheckIn] = useState(false);
   const [showPanic, setShowPanic] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [selectedDay, setSelectedDay] = useState<number | null>(null);
+  const [newlyUnlockedDay, setNewlyUnlockedDay] = useState<number | null>(null);
+  const hasInitializedRef = useRef(false);
+  const prevTodayDoneRef = useRef(false);
 
   const load = () => {
     const ch = getActiveChallengeForUser();
@@ -90,6 +94,23 @@ function Dashboard() {
     }
   }, [survivedCount, challenge, loading, navigate]);
 
+  // Detect today's check-in completing this session → trigger reveal animation
+  useEffect(() => {
+    if (loading) return;
+    if (!hasInitializedRef.current) {
+      prevTodayDoneRef.current = todayDone;
+      hasInitializedRef.current = true;
+      return;
+    }
+    if (todayDone && !prevTodayDoneRef.current) {
+      setNewlyUnlockedDay(today);
+      const t = setTimeout(() => setNewlyUnlockedDay(null), 2200);
+      prevTodayDoneRef.current = true;
+      return () => clearTimeout(t);
+    }
+    if (!todayDone) prevTodayDoneRef.current = false;
+  }, [loading, todayDone, today]);
+
   if (loading || !challenge) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center font-mono text-muted-foreground text-sm uppercase tracking-widest">
@@ -100,6 +121,15 @@ function Dashboard() {
 
   const dayMap = new Map<number, LocalCheckIn>();
   checkIns.forEach((c) => dayMap.set(c.day_number, c));
+
+  const displayDay = selectedDay ?? today;
+  const selectedIsUnlocked =
+    displayDay < today
+      ? dayMap.get(displayDay)?.completed === true
+      : displayDay === today
+      ? todayDone
+      : false;
+  const isNewlyUnlocked = newlyUnlockedDay === displayDay;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -173,51 +203,61 @@ function Dashboard() {
           </div>
         </section>
 
-        {/* 66-day grid */}
-        <section>
-          <div className="font-mono text-xs uppercase tracking-[0.3em] text-muted-foreground mb-3">
-            [ THE 66 ]
-          </div>
-          <div className="grid grid-cols-11 gap-1.5 sm:gap-2">
-            {Array.from({ length: TOTAL_DAYS }, (_, i) => i + 1).map((d) => {
-              const c = dayMap.get(d);
-              const isToday = d === today;
-              const isPast = d < today;
-              const survived = !!c?.completed;
-              const violated = isPast && !survived;
-              const isFinal = d === FINAL_DAY;
-              const isMilestone = MILESTONES.has(d) && d !== FINAL_DAY;
+        {/* 66-day grid + Transmission card */}
+        <div className="flex flex-col lg:flex-row lg:items-start gap-6">
+          <section className="flex-1 min-w-0">
+            <div className="font-mono text-xs uppercase tracking-[0.3em] text-muted-foreground mb-3">
+              [ THE 66 ]
+            </div>
+            <div className="grid grid-cols-11 gap-1.5 sm:gap-2">
+              {Array.from({ length: TOTAL_DAYS }, (_, i) => i + 1).map((d) => {
+                const c = dayMap.get(d);
+                const isToday = d === today;
+                const isPast = d < today;
+                const survived = !!c?.completed;
+                const violated = isPast && !survived;
+                const isFinal = d === FINAL_DAY;
+                const isMilestone = MILESTONES.has(d) && d !== FINAL_DAY;
+                const isClickable = survived || isToday;
+                const isSelected = d === displayDay;
 
-              const base = "aspect-square rounded-sm border flex items-center justify-center font-mono text-[10px] sm:text-xs transition relative";
-              let cls = "";
-              if (survived && isFinal) {
-                cls = "bg-primary border-[color:var(--color-reward)] text-primary-foreground shadow-[0_0_18px_oklch(0.85_0.18_90/0.6)]";
-              } else if (survived) {
-                cls = `bg-primary border-primary text-primary-foreground shadow-[0_0_10px_oklch(0.62_0.24_25/0.55)] ${isMilestone ? "ring-1 ring-[color:var(--color-reward)]" : ""}`;
-              } else if (isToday) {
-                cls = "border-2 border-primary text-primary bg-primary/10 animate-pulse-red";
-              } else if (violated) {
-                cls = "bg-[oklch(0.25_0.08_25)] border-[oklch(0.4_0.12_25)] text-[oklch(0.55_0.12_25)] line-through";
-              } else if (isFinal) {
-                cls = "border-[color:var(--color-reward)]/70 text-[color:var(--color-reward)] bg-[color:var(--color-reward)]/5";
-              } else if (isMilestone) {
-                cls = "border-[color:var(--color-reward)]/40 text-[color:var(--color-reward)]/70 bg-surface";
-              } else {
-                cls = "border-border/40 bg-surface/40 text-muted-foreground/40";
-              }
+                const base = "aspect-square rounded-sm border flex items-center justify-center font-mono text-[10px] sm:text-xs transition relative";
+                let cls = "";
+                if (survived && isFinal) {
+                  cls = "bg-primary border-[color:var(--color-reward)] text-primary-foreground shadow-[0_0_18px_oklch(0.85_0.18_90/0.6)]";
+                } else if (survived) {
+                  cls = `bg-primary border-primary text-primary-foreground shadow-[0_0_10px_oklch(0.62_0.24_25/0.55)] ${isMilestone ? "ring-1 ring-[color:var(--color-reward)]" : ""}`;
+                } else if (isToday) {
+                  cls = "border-2 border-primary text-primary bg-primary/10 animate-pulse-red";
+                } else if (violated) {
+                  cls = "bg-[oklch(0.25_0.08_25)] border-[oklch(0.4_0.12_25)] text-[oklch(0.55_0.12_25)] line-through";
+                } else if (isFinal) {
+                  cls = "border-[color:var(--color-reward)]/70 text-[color:var(--color-reward)] bg-[color:var(--color-reward)]/5";
+                } else if (isMilestone) {
+                  cls = "border-[color:var(--color-reward)]/40 text-[color:var(--color-reward)]/70 bg-surface";
+                } else {
+                  cls = "border-border/40 bg-surface/40 text-muted-foreground/40";
+                }
 
-              return (
-                <div
-                  key={d}
-                  className={`${base} ${cls}`}
-                  title={`Day ${d}${isFinal ? " — FINAL" : isMilestone ? " — milestone" : ""}`}
-                >
-                  {survived ? (isFinal ? "★" : "✓") : d}
-                </div>
-              );
-            })}
-          </div>
-        </section>
+                return (
+                  <div
+                    key={d}
+                    className={`${base} ${cls}${isClickable ? " cursor-pointer" : ""}${isSelected && isClickable ? " outline outline-2 outline-offset-1 outline-primary/60" : ""}`}
+                    title={`Day ${d}${isFinal ? " — FINAL" : isMilestone ? " — milestone" : ""}`}
+                    onClick={isClickable ? () => setSelectedDay(d) : undefined}
+                  >
+                    {survived ? (isFinal ? "★" : "✓") : d}
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+          <TransmissionCard
+            day={displayDay}
+            isUnlocked={selectedIsUnlocked}
+            isNewlyUnlocked={isNewlyUnlocked}
+          />
+        </div>
 
         {/* Stats inline */}
         <section className="grid grid-cols-3 gap-3">
@@ -241,9 +281,6 @@ function Dashboard() {
           <p className="font-display text-2xl uppercase leading-tight">
             {pickProtocol(challenge.tone, challenge.kind, challenge.name, today)}
           </p>
-          <p className="mt-3 border-t border-border/60 pt-3 font-mono text-xs leading-relaxed text-muted-foreground">
-            <span className="text-foreground">"{pickDailyQuote(today).text}"</span> — {pickDailyQuote(today).author}
-          </p>
           {challenge.motivation && (
             <p className="mt-4 font-mono text-xs uppercase tracking-widest text-muted-foreground">
               Why: "{challenge.motivation}"
@@ -257,7 +294,7 @@ function Dashboard() {
           challenge={challenge}
           day={today}
           onClose={() => setShowCheckIn(false)}
-          onDone={() => { setShowCheckIn(false); load(); }}
+          onDone={() => { setShowCheckIn(false); setSelectedDay(null); load(); }}
         />
       )}
       {showPanic && (
@@ -277,6 +314,45 @@ function Dashboard() {
         />
       )}
     </div>
+  );
+}
+
+function TransmissionCard({
+  day,
+  isUnlocked,
+  isNewlyUnlocked,
+}: {
+  day: number;
+  isUnlocked: boolean;
+  isNewlyUnlocked: boolean;
+}) {
+  const quote = pickDailyQuote(day);
+  return (
+    <aside className="rounded-sm border-l-4 border-primary bg-surface p-5 shadow-[0_0_24px_oklch(0.62_0.24_25/0.15)] lg:w-72 xl:w-80 flex-shrink-0">
+      <div className="font-mono text-xs uppercase tracking-[0.3em] text-primary mb-4">
+        [ DAY {String(day).padStart(2, "0")} TRANSMISSION. ]
+      </div>
+      {isUnlocked ? (
+        <div className={isNewlyUnlocked ? "animate-quote-flicker" : ""}>
+          <p className="text-lg leading-relaxed text-foreground">&ldquo;{quote.text}&rdquo;</p>
+          <p className="mt-4 font-mono text-xs text-muted-foreground tracking-wide">— {quote.author}</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <div className="h-px flex-1 bg-primary/30" />
+            <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary/50">locked</span>
+            <div className="h-px flex-1 bg-primary/30" />
+          </div>
+          <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground/60 pt-1">
+            TRANSMISSION LOCKED
+          </p>
+          <p className="font-mono text-xs text-muted-foreground">
+            Survive Day {day} to unlock.
+          </p>
+        </div>
+      )}
+    </aside>
   );
 }
 
