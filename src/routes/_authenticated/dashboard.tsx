@@ -156,14 +156,14 @@ function Dashboard() {
             </div>
             <div className="text-right">
               <div className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Survived</div>
-              <div className="font-display text-5xl text-[color:var(--color-success)]">{survivedCount}</div>
+              <div className="font-display text-5xl text-primary">{survivedCount}</div>
             </div>
           </div>
 
-          {/* HP bar */}
+          {/* Survival Meter */}
           <div className="mt-6">
             <div className="flex justify-between font-mono text-xs uppercase tracking-widest text-muted-foreground mb-2">
-              <span>HP</span><span>{hp}%</span>
+              <span>Survival Meter</span><span>{hp}%</span>
             </div>
             <div className="h-3 w-full rounded-sm border border-border bg-background overflow-hidden">
               <div
@@ -180,7 +180,7 @@ function Dashboard() {
               onClick={() => setShowCheckIn(true)}
               className={`rounded-sm px-6 py-3 font-display text-lg uppercase tracking-wider ${
                 todayDone
-                  ? "bg-[color:var(--color-success)] text-background cursor-default"
+                  ? "bg-primary/30 border border-primary text-primary cursor-default"
                   : "bg-primary text-primary-foreground hover:opacity-90"
               }`}
             >
@@ -205,22 +205,36 @@ function Dashboard() {
               const c = dayMap.get(d);
               const isToday = d === today;
               const isPast = d < today;
-              const survived = c?.completed;
+              const survived = !!c?.completed;
+              const violated = isPast && !survived;
+              const isFinal = d === FINAL_DAY;
+              const isMilestone = MILESTONES.has(d) && d !== FINAL_DAY;
+
+              const base = "aspect-square rounded-sm border flex items-center justify-center font-mono text-[10px] sm:text-xs transition relative";
+              let cls = "";
+              if (survived && isFinal) {
+                cls = "bg-primary border-[color:var(--color-reward)] text-primary-foreground shadow-[0_0_18px_oklch(0.85_0.18_90/0.6)]";
+              } else if (survived) {
+                cls = `bg-primary border-primary text-primary-foreground shadow-[0_0_10px_oklch(0.62_0.24_25/0.55)] ${isMilestone ? "ring-1 ring-[color:var(--color-reward)]" : ""}`;
+              } else if (isToday) {
+                cls = "border-2 border-primary text-primary bg-primary/10 animate-pulse-red";
+              } else if (violated) {
+                cls = "bg-[oklch(0.25_0.08_25)] border-[oklch(0.4_0.12_25)] text-[oklch(0.55_0.12_25)] line-through";
+              } else if (isFinal) {
+                cls = "border-[color:var(--color-reward)]/70 text-[color:var(--color-reward)] bg-[color:var(--color-reward)]/5";
+              } else if (isMilestone) {
+                cls = "border-[color:var(--color-reward)]/40 text-[color:var(--color-reward)]/70 bg-surface";
+              } else {
+                cls = "border-border/40 bg-surface/40 text-muted-foreground/40";
+              }
+
               return (
                 <div
                   key={d}
-                  className={`aspect-square rounded-sm border flex items-center justify-center font-mono text-[10px] sm:text-xs transition ${
-                    survived
-                      ? "bg-[color:var(--color-success)] border-[color:var(--color-success)] text-background"
-                      : isPast
-                      ? "bg-surface border-border/40 text-muted-foreground/40 line-through"
-                      : isToday
-                      ? "border-primary text-primary bg-primary/10"
-                      : "border-border bg-surface text-muted-foreground"
-                  }`}
-                  title={`Day ${d}`}
+                  className={`${base} ${cls}`}
+                  title={`Day ${d}${isFinal ? " — FINAL" : isMilestone ? " — milestone" : ""}`}
                 >
-                  {survived ? "✓" : d}
+                  {survived ? (isFinal ? "★" : "✓") : d}
                 </div>
               );
             })}
@@ -239,6 +253,21 @@ function Dashboard() {
               <div className="mt-1 font-display text-3xl">{val}</div>
             </div>
           ))}
+        </section>
+
+        {/* Today's Protocol */}
+        <section className="rounded-sm border-l-4 border-primary bg-surface p-6">
+          <div className="font-mono text-xs uppercase tracking-[0.3em] text-primary mb-3">
+            [ TODAY'S PROTOCOL ]
+          </div>
+          <p className="font-display text-2xl uppercase leading-tight">
+            {pickProtocol(challenge.tone, challenge.kind, challenge.name, today)}
+          </p>
+          {challenge.motivation && (
+            <p className="mt-4 font-mono text-xs uppercase tracking-widest text-muted-foreground">
+              Why: "{challenge.motivation}"
+            </p>
+          )}
         </section>
       </main>
 
