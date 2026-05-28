@@ -8,6 +8,10 @@ import type { Tone } from "@/lib/tone";
 export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({ meta: [{ title: "Choose your challenge — Only 66" }] }),
   beforeLoad: async () => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
     const activeChallenge = getActiveChallengeForUser();
     if (activeChallenge) throw redirect({ to: "/dashboard" });
   },
@@ -43,10 +47,10 @@ function Onboarding() {
       }
 
       toast.success("Challenge started!");
-      navigate({ to: "/dashboard" });
+      navigate({ to: "/dashboard", replace: true });
+      setSubmitting(false);
     } catch (err: any) {
       toast.error(err.message || "Could not start challenge");
-    } finally {
       setSubmitting(false);
     }
   };

@@ -12,6 +12,10 @@ import { SoundToggle } from "@/components/SoundToggle";
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Only 66" }] }),
   beforeLoad: async () => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
     const challenge = getActiveChallengeForUser();
     if (!challenge) throw redirect({ to: "/onboarding" });
     if (challenge.status === "completed") throw redirect({ to: "/win" });

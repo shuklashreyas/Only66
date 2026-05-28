@@ -1,6 +1,6 @@
 import { createFileRoute, redirect, useNavigate, Link } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
-import { getLocalUser, createLocalUser } from "@/lib/storage";
+import { getLocalUser, createLocalUser, getActiveChallengeForUser } from "@/lib/storage";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/login")({
@@ -8,8 +8,15 @@ export const Route = createFileRoute("/login")({
     meta: [{ title: "Log in — Only 66" }],
   }),
   beforeLoad: async () => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
     const user = getLocalUser();
-    if (user) throw redirect({ to: "/onboarding" });
+    if (user) {
+      const activeChallenge = getActiveChallengeForUser();
+      throw redirect({ to: activeChallenge ? "/dashboard" : "/onboarding" });
+    }
   },
   component: LoginPage,
 });
@@ -33,7 +40,8 @@ function LoginPage() {
       // Create local user
       createLocalUser(name);
       toast.success(`Welcome, ${name}!`);
-      navigate({ to: "/onboarding", replace: true });
+      await navigate({ to: "/onboarding", replace: true });
+      setLoading(false);
     } catch (err: any) {
       toast.error(err.message || "Could not sign in");
       setLoading(false);

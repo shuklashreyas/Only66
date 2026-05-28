@@ -4,28 +4,36 @@
 
 Pick one challenge. Protect your streak. Make it to Day 66.
 
+![Only 66 Logo](./imgs/logo.png)
+
 ---
 
-## 📱 About Only 66
+## About Only 66
 
 **Only 66** is a gamified habit tracker that helps you build or break a habit in 66 days. 
 
 Inspired by the addictive streak system of apps like Duolingo, Only 66 uses:
-- 🔥 **Progress tracking** — Visual streak counter and daily check-ins
-- 🔔 **Reminders** — Stay on top of your challenge with smart notifications
-- 💪 **Pressure-based motivation** — The fear of losing your streak keeps you consistent
+- **Progress tracking** — Visual streak counter and daily check-ins
+- **Reminders** — Stay on top of your challenge with smart notifications
+- **Pressure-based motivation** — The fear of losing your streak keeps you consistent
 
 Pick one habit. Follow through. Don't fold.
 
 ---
 
-## 🎨 Logo
+## Pictures
 
-**Only 66** — Minimalist, bold, and unapologetic. Two numbers with a mission.
+### Landing Page
+
+![Only 66 Landing Page](./imgs/LandingPage.png)
+
+### Calendar View
+
+![Only 66 Calendar View](./imgs/Calendar.png)
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
@@ -46,7 +54,7 @@ Pick one habit. Follow through. Don't fold.
 
 ---
 
-## 📄 UI Pages
+## UI Pages
 
 ### Public Pages
 - **Landing Page** (`/`) — Hero section showcasing the challenge concept with example habits
@@ -70,7 +78,7 @@ Pick one habit. Follow through. Don't fold.
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 only-66-day-streak/
@@ -138,7 +146,7 @@ only-66-day-streak/
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - Node.js 18+
@@ -174,7 +182,7 @@ supabase migration up
 
 ---
 
-## 🎮 How It Works
+## How It Works
 
 1. **Create Challenge** — User picks a habit and commits to 66 days
 2. **Daily Check-in** — Each day, confirm completion or skip (breaks streak)
@@ -183,7 +191,7 @@ supabase migration up
 
 ---
 
-## 🌐 Deployment
+## Deployment
 
 Deploy to Vercel with one click:
 
@@ -195,9 +203,9 @@ Environment variables are securely managed through Vercel dashboard.
 
 ---
 
-## 📝 License
+## License
 
-MIT — Built with 🔥 using Lovable, Vercel, and Copilot
+MIT — Built using Lovable, Vercel, and Copilot
 
 ---
 
