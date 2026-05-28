@@ -79,7 +79,7 @@ function Onboarding() {
           <div className="space-y-6">
             <h1 className="font-display text-4xl uppercase">What are you doing?</h1>
             <div className="grid gap-3 sm:grid-cols-2">
-              {(["build", "break"] as const).map((k) => (
+              {(["build", "quit"] as const).map((k) => (
                 <button
                   key={k}
                   onClick={() => setKind(k)}
@@ -87,7 +87,7 @@ function Onboarding() {
                     kind === k ? "border-primary bg-primary/10" : "border-border bg-surface hover:bg-surface-2"
                   }`}
                 >
-                  <div className="font-display text-2xl uppercase">{k === "build" ? "Build it" : "Break it"}</div>
+                  <div className="font-display text-2xl uppercase">{k === "build" ? "Build it" : "Quit it"}</div>
                   <p className="mt-2 text-sm text-muted-foreground">
                     {k === "build" ? "Do this thing every day for 66 days." : "Don't do this thing for 66 days."}
                   </p>
