@@ -126,6 +126,19 @@
   100% { transform: scale(1); opacity: 1; }
 }
 
+@keyframes knight-float {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50% { transform: translateY(-18px) rotate(1deg); }
+}
+
+@keyframes knight-glow {
+  0%, 100% { opacity: 0.35; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.08); }
+}
+
+.animate-knight-float { animation: knight-float 5s ease-in-out infinite; }
+.animate-knight-glow { animation: knight-glow 3.5s ease-in-out infinite; }
+
 @layer base {
   * {
     border-color: var(--color-border);
