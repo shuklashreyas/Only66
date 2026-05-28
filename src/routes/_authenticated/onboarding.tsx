@@ -24,7 +24,7 @@ export const Route = createFileRoute("/_authenticated/onboarding")({
 function Onboarding() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
-  const [kind, setKind] = useState<"build" | "break">("build");
+  const [kind, setKind] = useState<"build" | "quit">("build");
   const [name, setName] = useState("");
   const [motivation, setMotivation] = useState("");
   const [tone, setTone] = useState<Tone>("strict");
