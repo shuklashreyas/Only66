@@ -57,7 +57,7 @@ function Landing() {
             </h1>
             <p className="mt-8 max-w-xl text-lg text-muted-foreground">
               Only 66 is a brutal little habit tracker. One challenge. One streak.
-              Make it to Day 66 — or fold and start over.
+              Make it to Day 66. If you fold, the grid remembers.
             </p>
 
             <div className="mt-10 flex flex-wrap gap-3">
@@ -112,7 +112,7 @@ function Landing() {
           <div className="mt-12 grid gap-6 md:grid-cols-3">
             {[
               { n: "01", t: "Pick one habit", d: "Build or break. One thing. No portfolio of half-attempts." },
-              { n: "02", t: "Check in daily", d: "Every day you survive, you stamp the grid. Streak grows. HP holds." },
+              { n: "02", t: "Check in daily", d: "Every day you survive, you stamp the grid. Streak grows. Survival Meter holds." },
               { n: "03", t: "Don't fold", d: "Hit the panic button when you're about to break. Survive the urge. Repeat 66 times." },
             ].map((step) => (
               <div key={step.n} className="rounded-sm border border-border bg-background p-6">

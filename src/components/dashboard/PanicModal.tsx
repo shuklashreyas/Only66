@@ -72,15 +72,19 @@ export function PanicModal({
           <button
             disabled={seconds > 0}
             onClick={survived}
-            className="rounded-sm bg-primary text-primary-foreground px-4 py-3 font-display uppercase tracking-wider disabled:opacity-40"
+            className={`rounded-sm px-4 py-3 font-display uppercase tracking-wider transition ${
+              seconds > 0
+                ? "bg-surface-2 text-muted-foreground border border-border cursor-not-allowed"
+                : "bg-primary text-primary-foreground hover:opacity-90 shadow-[0_0_24px_oklch(0.62_0.24_25/0.6)]"
+            }`}
           >
-            {seconds > 0 ? `Wait ${seconds}s` : "I survived the urge"}
+            {seconds > 0 ? `WAIT ${seconds}S` : "I'm staying in"}
           </button>
           <button
             onClick={onClose}
-            className="rounded-sm border border-border px-4 py-2 font-mono text-xs uppercase tracking-widest text-muted-foreground hover:bg-surface"
+            className="rounded-sm border border-border px-4 py-2 font-mono text-xs uppercase tracking-widest text-muted-foreground hover:text-primary hover:border-primary/60 hover:bg-surface"
           >
-            Close
+            I'm folding
           </button>
         </div>
       </div>
