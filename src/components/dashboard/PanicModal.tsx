@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { play, startTick, stopTick } from "@/lib/sound";
 
 type Challenge = { id: string; user_id: string; motivation: string | null };
 
