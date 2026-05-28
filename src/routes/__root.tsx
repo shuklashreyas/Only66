@@ -8,6 +8,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { Globe, Github, Linkedin } from "lucide-react";
 
 import { Toaster } from "@/components/ui/sonner";
 import { initTheme } from "@/lib/theme";
@@ -136,10 +137,10 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <div className="min-h-screen flex flex-col bg-background text-foreground">
-        <div className="flex-1">
+        <div className="flex-1 pb-20 sm:pb-16">
           <Outlet />
         </div>
-        <footer className="border-t border-border bg-background/95">
+        <footer className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur-sm">
           <div className="mx-auto flex max-w-5xl flex-col gap-3 px-6 py-4 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
             <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
               Copyright Shreyas Shukla
@@ -149,25 +150,28 @@ function RootComponent() {
                 href="https://www.shuklashreyas.com/"
                 target="_blank"
                 rel="noreferrer"
-                className="transition hover:text-primary"
+                aria-label="Shreyas Shukla website"
+                className="flex h-9 w-9 items-center justify-center rounded-sm border border-border bg-surface text-muted-foreground transition hover:border-primary hover:text-primary"
               >
-                Website
+                <Globe className="h-4 w-4" />
               </a>
               <a
                 href="https://github.com/shuklashreyas"
                 target="_blank"
                 rel="noreferrer"
-                className="transition hover:text-primary"
+                aria-label="Shreyas Shukla GitHub"
+                className="flex h-9 w-9 items-center justify-center rounded-sm border border-border bg-surface text-muted-foreground transition hover:border-primary hover:text-primary"
               >
-                GitHub
+                <Github className="h-4 w-4" />
               </a>
               <a
                 href="https://www.linkedin.com/in/shreyas-shukla26/"
                 target="_blank"
                 rel="noreferrer"
-                className="transition hover:text-primary"
+                aria-label="Shreyas Shukla LinkedIn"
+                className="flex h-9 w-9 items-center justify-center rounded-sm border border-border bg-surface text-muted-foreground transition hover:border-primary hover:text-primary"
               >
-                LinkedIn
+                <Linkedin className="h-4 w-4" />
               </a>
             </div>
           </div>
