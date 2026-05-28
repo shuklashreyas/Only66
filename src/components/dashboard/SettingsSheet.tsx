@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { TONE_LABELS, type Tone } from "@/lib/tone";
-import { updateChallenge, deleteChallenge, clearLocalUser, type LocalChallenge } from "@/lib/storage";
+import { updateChallenge, clearLocalUser, getUserDisplayName, setUserDisplayName, type LocalChallenge } from "@/lib/storage";
 
 export function SettingsSheet({
   challenge,
@@ -16,6 +16,7 @@ export function SettingsSheet({
   const navigate = useNavigate();
   const [tone, setTone] = useState<Tone>(challenge.tone);
   const [reminderTime, setReminderTime] = useState(challenge.reminder_time.slice(0, 5));
+  const [displayName, setDisplayName] = useState(getUserDisplayName() ?? "");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -27,6 +28,7 @@ export function SettingsSheet({
   const save = () => {
     setSaving(true);
     try {
+      setUserDisplayName(displayName);
       updateChallenge(challenge.id, { tone, reminder_time: reminderTime + ":00" });
       toast.success("Saved.");
       onChanged();
@@ -94,6 +96,18 @@ export function SettingsSheet({
               value={reminderTime}
               onChange={(e) => setReminderTime(e.target.value)}
               className="rounded-sm border border-border bg-background px-3 py-2 font-mono"
+            />
+          </div>
+
+          <div>
+            <div className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-2">Display name</div>
+            <input
+              type="text"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="What should we call you?"
+              maxLength={50}
+              className="w-full rounded-sm border border-border bg-background px-3 py-2 font-mono"
             />
           </div>
 

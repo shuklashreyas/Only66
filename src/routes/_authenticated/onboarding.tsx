@@ -2,7 +2,7 @@ import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-ro
 import { useState } from "react";
 import { toast } from "sonner";
 import { todayIso } from "@/lib/day-math";
-import { createChallenge, getActiveChallengeForUser } from "@/lib/storage";
+import { createChallenge, getActiveChallengeForUser, getUserDisplayName, setUserDisplayName } from "@/lib/storage";
 import type { Tone } from "@/lib/tone";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
@@ -26,11 +26,17 @@ function Onboarding() {
   const [motivation, setMotivation] = useState("");
   const [tone, setTone] = useState<Tone>("strict");
   const [reminderTime, setReminderTime] = useState("09:00");
+  const [displayName, setDisplayName] = useState("");
+  const existingDisplayName = getUserDisplayName();
   const [submitting, setSubmitting] = useState(false);
 
   const handleStart = async () => {
     setSubmitting(true);
     try {
+      if (!existingDisplayName && displayName.trim()) {
+        setUserDisplayName(displayName);
+      }
+
       createChallenge({
         name: name.trim(),
         kind,
@@ -164,6 +170,22 @@ function Onboarding() {
             <p className="text-muted-foreground text-sm">
               We'll ping your browser daily at this time. You'll be asked for permission after this.
             </p>
+
+            {!existingDisplayName && (
+              <div>
+                <label className="block font-mono text-xs uppercase tracking-widest text-muted-foreground mb-2">
+                  What should we call you?
+                </label>
+                <input
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder="Optional"
+                  className="w-full rounded-sm border border-border bg-surface px-4 py-3 font-mono"
+                  maxLength={50}
+                />
+              </div>
+            )}
+
             <input
               type="time"
               value={reminderTime}

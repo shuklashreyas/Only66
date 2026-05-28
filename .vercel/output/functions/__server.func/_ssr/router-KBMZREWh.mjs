@@ -33,7 +33,7 @@ const Toaster = ({ ...props }) => {
     }
   );
 };
-const appCss = "/assets/styles-Ci0PVQ0p.css";
+const appCss = "/assets/styles-DB0ctUhu.css";
 function NotFoundComponent() {
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex min-h-screen items-center justify-center bg-background px-4", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "max-w-md text-center", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "text-7xl font-display text-primary", children: "404" }),
@@ -95,8 +95,8 @@ const Route$7 = createRootRouteWithContext()({
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/logo.png", type: "image/png" },
-      { rel: "apple-touch-icon", href: "/logo.png" },
+      { rel: "icon", href: "/66.png", type: "image/png" },
+      { rel: "apple-touch-icon", href: "/66.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -140,6 +140,7 @@ function RootComponent() {
 }
 const STORAGE_KEYS = {
   user: "only66_user",
+  userName: "only66_user_name",
   challenges: "only66_challenges",
   checkIns: "only66_checkIns"
 };
@@ -161,10 +162,34 @@ function createLocalUser(displayName) {
     createdAt: (/* @__PURE__ */ new Date()).toISOString()
   };
   setLocalUser(user);
+  setUserDisplayName(displayName);
   return user;
 }
 function clearLocalUser() {
   localStorage.removeItem(STORAGE_KEYS.user);
+  localStorage.removeItem(STORAGE_KEYS.userName);
+}
+function getUserDisplayName() {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEYS.userName)?.trim() || "";
+    if (stored) return stored;
+    const legacy = getLocalUser()?.displayName?.trim() || "";
+    if (legacy) {
+      localStorage.setItem(STORAGE_KEYS.userName, legacy);
+      return legacy;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+function setUserDisplayName(name) {
+  const normalized = name.trim();
+  if (!normalized) {
+    localStorage.removeItem(STORAGE_KEYS.userName);
+    return;
+  }
+  localStorage.setItem(STORAGE_KEYS.userName, normalized);
 }
 function getChallenges() {
   try {
@@ -233,7 +258,7 @@ function createCheckIn(data) {
 function generateId() {
   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
-const $$splitComponentImporter$6 = () => import("./login-D3biVRhN.mjs");
+const $$splitComponentImporter$6 = () => import("./login-CftoySj8.mjs");
 const Route$6 = createFileRoute("/login")({
   head: () => ({
     meta: [{
@@ -299,7 +324,7 @@ const Route$4 = createFileRoute("/")({
   }),
   component: lazyRouteComponent($$splitComponentImporter$4, "component")
 });
-const $$splitComponentImporter$3 = () => import("./win-Dx7L__dZ.mjs");
+const $$splitComponentImporter$3 = () => import("./win-pjwD9kZl.mjs");
 const Route$3 = createFileRoute("/_authenticated/win")({
   head: () => ({
     meta: [{
@@ -308,7 +333,7 @@ const Route$3 = createFileRoute("/_authenticated/win")({
   }),
   component: lazyRouteComponent($$splitComponentImporter$3, "component")
 });
-const $$splitComponentImporter$2 = () => import("./onboarding-C1i9sXXX.mjs");
+const $$splitComponentImporter$2 = () => import("./onboarding-YL7uQACv.mjs");
 const Route$2 = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
     meta: [{
@@ -326,7 +351,7 @@ const Route$2 = createFileRoute("/_authenticated/onboarding")({
   },
   component: lazyRouteComponent($$splitComponentImporter$2, "component")
 });
-const $$splitComponentImporter$1 = () => import("./folded-C9Mx6jIp.mjs");
+const $$splitComponentImporter$1 = () => import("./folded-B53V4B44.mjs");
 const Route$1 = createFileRoute("/_authenticated/folded")({
   head: () => ({
     meta: [{
@@ -346,7 +371,7 @@ const Route$1 = createFileRoute("/_authenticated/folded")({
   },
   component: lazyRouteComponent($$splitComponentImporter$1, "component")
 });
-const $$splitComponentImporter = () => import("./dashboard-DuXpaV46.mjs");
+const $$splitComponentImporter = () => import("./dashboard-DKEhLAYJ.mjs");
 const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [{
@@ -438,6 +463,8 @@ export {
   getCheckInsForChallenge as e,
   getLatestAbandonedChallenge as f,
   getActiveChallengeForUser as g,
+  getUserDisplayName as h,
   router as r,
+  setUserDisplayName as s,
   updateChallenge as u
 };

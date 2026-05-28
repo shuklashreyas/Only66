@@ -2,7 +2,7 @@ import { r as reactExports, j as jsxRuntimeExports } from "../_libs/react.mjs";
 import { u as useNavigate, L as Link } from "../_libs/tanstack__react-router.mjs";
 import { t as toast } from "../_libs/sonner.mjs";
 import { d as dayNumber, t as todayIso, T as TOTAL_DAYS } from "./day-math-OKL4F-bz.mjs";
-import { u as updateChallenge, g as getActiveChallengeForUser, e as getCheckInsForChallenge, b as createCheckIn, c as clearLocalUser } from "./router-DXbdypsj.mjs";
+import { h as getUserDisplayName, u as updateChallenge, g as getActiveChallengeForUser, e as getCheckInsForChallenge, b as createCheckIn, s as setUserDisplayName, c as clearLocalUser } from "./router-KBMZREWh.mjs";
 import { isMuted, play, startTick, stopTick, setMuted, playBgm } from "./sound--O_4J7dP.mjs";
 import "../_libs/tanstack__router-core.mjs";
 import "../_libs/tanstack__history.mjs";
@@ -353,6 +353,7 @@ function SettingsSheet({
   const navigate = useNavigate();
   const [tone, setTone] = reactExports.useState(challenge.tone);
   const [reminderTime, setReminderTime] = reactExports.useState(challenge.reminder_time.slice(0, 5));
+  const [displayName, setDisplayName] = reactExports.useState(getUserDisplayName() ?? "");
   const [saving, setSaving] = reactExports.useState(false);
   reactExports.useEffect(() => {
     const onEsc = (e) => e.key === "Escape" && onClose();
@@ -362,6 +363,7 @@ function SettingsSheet({
   const save = () => {
     setSaving(true);
     try {
+      setUserDisplayName(displayName);
       updateChallenge(challenge.id, { tone, reminder_time: reminderTime + ":00" });
       toast.success("Saved.");
       onChanged();
@@ -418,6 +420,20 @@ function SettingsSheet({
             value: reminderTime,
             onChange: (e) => setReminderTime(e.target.value),
             className: "rounded-sm border border-border bg-background px-3 py-2 font-mono"
+          }
+        )
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "font-mono text-xs uppercase tracking-widest text-muted-foreground mb-2", children: "Display name" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "input",
+          {
+            type: "text",
+            value: displayName,
+            onChange: (e) => setDisplayName(e.target.value),
+            placeholder: "What should we call you?",
+            maxLength: 50,
+            className: "w-full rounded-sm border border-border bg-background px-3 py-2 font-mono"
           }
         )
       ] }),
@@ -501,6 +517,7 @@ function Dashboard() {
   const [showCheckIn, setShowCheckIn] = reactExports.useState(false);
   const [showPanic, setShowPanic] = reactExports.useState(false);
   const [showSettings, setShowSettings] = reactExports.useState(false);
+  const [displayName, setDisplayName] = reactExports.useState(null);
   const [selectedDay, setSelectedDay] = reactExports.useState(null);
   const [newlyUnlockedDay, setNewlyUnlockedDay] = reactExports.useState(null);
   const hasInitializedRef = reactExports.useRef(false);
@@ -531,6 +548,9 @@ function Dashboard() {
   };
   reactExports.useEffect(() => {
     load();
+  }, []);
+  reactExports.useEffect(() => {
+    setDisplayName(getUserDisplayName());
   }, []);
   const today = challenge ? dayNumber(challenge.start_date) : 0;
   const todayDone = reactExports.useMemo(() => checkIns.some((c) => c.date === todayIso() && c.completed), [checkIns]);
@@ -642,6 +662,14 @@ function Dashboard() {
           /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => setShowPanic(true), className: "rounded-sm border-2 border-primary text-primary px-6 py-3 font-display uppercase tracking-wider hover:bg-primary/10 animate-pulse-red", children: "I'm about to fold" })
         ] })
       ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-0.5", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "font-mono text-[10px] uppercase tracking-[0.35em] text-muted-foreground/50", children: "[ OPERATIVE STATUS ]" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "font-display text-xl uppercase tracking-wider text-foreground drop-shadow-[0_0_8px_oklch(0.62_0.24_25/0.45)]", children: displayName ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+          "THE RUN CONTINUES, ",
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-primary", children: displayName }),
+          "."
+        ] }) : /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: "THE RUN CONTINUES." }) })
+      ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col lg:flex-row lg:items-start gap-6", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: "flex-1 min-w-0", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "font-mono text-xs uppercase tracking-[0.3em] text-muted-foreground mb-3", children: "[ THE 66 ]" }),
@@ -674,7 +702,7 @@ function Dashboard() {
             } else {
               cls = "border-border/40 bg-surface/40 text-muted-foreground/40";
             }
-            return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `${base} ${cls}${isClickable ? " cursor-pointer" : ""}${isSelected && isClickable ? " outline outline-2 outline-offset-1 outline-primary/60" : ""}`, title: `Day ${d}${isFinal ? " — FINAL" : isMilestone ? " — milestone" : ""}`, onClick: isClickable ? () => setSelectedDay(d) : void 0, children: survived ? isFinal ? "★" : "✓" : d }, d);
+            return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `${base} ${cls}${isClickable ? " cursor-pointer" : ""}${isSelected && isClickable ? " outline-2 outline-offset-1 outline-primary/60" : ""}`, title: `Day ${d}${isFinal ? " — FINAL" : isMilestone ? " — milestone" : ""}`, onClick: isClickable ? () => setSelectedDay(d) : void 0, children: survived ? isFinal ? "★" : "✓" : d }, d);
           }) })
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsx(TransmissionCard, { day: displayDay, isUnlocked: selectedIsUnlocked, isNewlyUnlocked })
@@ -699,7 +727,10 @@ function Dashboard() {
       load();
     } }),
     showPanic && /* @__PURE__ */ jsxRuntimeExports.jsx(PanicModal, { challenge, day: today, message: PANIC_LINES[challenge.tone].replace("{day}", String(survivedCount)), onClose: () => setShowPanic(false), onFold: fold }),
-    showSettings && /* @__PURE__ */ jsxRuntimeExports.jsx(SettingsSheet, { challenge, onClose: () => setShowSettings(false), onChanged: load })
+    showSettings && /* @__PURE__ */ jsxRuntimeExports.jsx(SettingsSheet, { challenge, onClose: () => setShowSettings(false), onChanged: () => {
+      load();
+      setDisplayName(getUserDisplayName());
+    } })
   ] });
 }
 function TransmissionCard({
@@ -708,7 +739,7 @@ function TransmissionCard({
   isNewlyUnlocked
 }) {
   const quote = pickDailyQuote(day);
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("aside", { className: "rounded-sm border-l-4 border-primary bg-surface p-5 shadow-[0_0_24px_oklch(0.62_0.24_25/0.15)] lg:w-72 xl:w-80 flex-shrink-0", children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("aside", { className: "rounded-sm border-l-4 border-primary bg-surface p-5 shadow-[0_0_24px_oklch(0.62_0.24_25/0.15)] lg:w-72 xl:w-80 shrink-0", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "font-mono text-xs uppercase tracking-[0.3em] text-primary mb-4", children: [
       "[ DAY ",
       String(day).padStart(2, "0"),

@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { TOTAL_DAYS, dayNumber, todayIso } from "@/lib/day-math";
 import { pickReminder, pickProtocol, PANIC_LINES, MILESTONES, FINAL_DAY, type Tone } from "@/lib/tone";
 import { pickDailyQuote } from "@/lib/quotes";
-import { getActiveChallengeForUser, getCheckInsForChallenge, getLocalUser, updateChallenge, type LocalChallenge, type LocalCheckIn, type LocalUser } from "@/lib/storage";
+import { getActiveChallengeForUser, getCheckInsForChallenge, getUserDisplayName, updateChallenge, type LocalChallenge, type LocalCheckIn } from "@/lib/storage";
 import { CheckInModal } from "@/components/dashboard/CheckInModal";
 import { PanicModal } from "@/components/dashboard/PanicModal";
 import { SettingsSheet } from "@/components/dashboard/SettingsSheet";
@@ -32,7 +32,7 @@ function Dashboard() {
   const [showCheckIn, setShowCheckIn] = useState(false);
   const [showPanic, setShowPanic] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [localUser, setLocalUser] = useState<LocalUser | null>(null);
+  const [displayName, setDisplayName] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [newlyUnlockedDay, setNewlyUnlockedDay] = useState<number | null>(null);
   const hasInitializedRef = useRef(false);
@@ -59,7 +59,7 @@ function Dashboard() {
   useEffect(() => { load(); }, []);
 
   useEffect(() => {
-    setLocalUser(getLocalUser());
+    setDisplayName(getUserDisplayName());
   }, []);
 
   const today = challenge ? dayNumber(challenge.start_date) : 0;
@@ -135,7 +135,6 @@ function Dashboard() {
       ? todayDone
       : false;
   const isNewlyUnlocked = newlyUnlockedDay === displayDay;
-  const displayName = localUser?.displayName?.trim() || null;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -329,7 +328,10 @@ function Dashboard() {
         <SettingsSheet
           challenge={challenge}
           onClose={() => setShowSettings(false)}
-          onChanged={load}
+          onChanged={() => {
+            load();
+            setDisplayName(getUserDisplayName());
+          }}
         />
       )}
     </div>

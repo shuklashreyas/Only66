@@ -37,6 +37,7 @@ export interface LocalCheckIn {
 
 const STORAGE_KEYS = {
   user: "only66_user",
+  userName: "only66_user_name",
   challenges: "only66_challenges",
   checkIns: "only66_checkIns",
 };
@@ -62,11 +63,40 @@ export function createLocalUser(displayName: string): LocalUser {
     createdAt: new Date().toISOString(),
   };
   setLocalUser(user);
+  setUserDisplayName(displayName);
   return user;
 }
 
 export function clearLocalUser(): void {
   localStorage.removeItem(STORAGE_KEYS.user);
+  localStorage.removeItem(STORAGE_KEYS.userName);
+}
+
+export function getUserDisplayName(): string | null {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEYS.userName)?.trim() || "";
+    if (stored) return stored;
+
+    // Backward-compat migration: reuse legacy local user displayName if present.
+    const legacy = getLocalUser()?.displayName?.trim() || "";
+    if (legacy) {
+      localStorage.setItem(STORAGE_KEYS.userName, legacy);
+      return legacy;
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export function setUserDisplayName(name: string): void {
+  const normalized = name.trim();
+  if (!normalized) {
+    localStorage.removeItem(STORAGE_KEYS.userName);
+    return;
+  }
+  localStorage.setItem(STORAGE_KEYS.userName, normalized);
 }
 
 // Challenge management

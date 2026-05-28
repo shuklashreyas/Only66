@@ -1,8 +1,8 @@
 import { r as reactExports, j as jsxRuntimeExports } from "../_libs/react.mjs";
-import { u as useNavigate } from "../_libs/tanstack__react-router.mjs";
+import { u as useNavigate, L as Link } from "../_libs/tanstack__react-router.mjs";
 import { t as toast } from "../_libs/sonner.mjs";
 import { t as todayIso } from "./day-math-OKL4F-bz.mjs";
-import { a as createChallenge } from "./router-DXbdypsj.mjs";
+import { h as getUserDisplayName, s as setUserDisplayName, a as createChallenge } from "./router-KBMZREWh.mjs";
 import "../_libs/tanstack__router-core.mjs";
 import "../_libs/tanstack__history.mjs";
 import "../_libs/cookie-es.mjs";
@@ -26,10 +26,15 @@ function Onboarding() {
   const [motivation, setMotivation] = reactExports.useState("");
   const [tone, setTone] = reactExports.useState("strict");
   const [reminderTime, setReminderTime] = reactExports.useState("09:00");
+  const [displayName, setDisplayName] = reactExports.useState("");
+  const existingDisplayName = getUserDisplayName();
   const [submitting, setSubmitting] = reactExports.useState(false);
   const handleStart = async () => {
     setSubmitting(true);
     try {
+      if (!existingDisplayName && displayName.trim()) {
+        setUserDisplayName(displayName);
+      }
       createChallenge({
         name: name.trim(),
         kind,
@@ -57,7 +62,7 @@ function Onboarding() {
     }
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "min-h-screen bg-background flex flex-col", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx("header", { className: "border-b border-border", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mx-auto max-w-3xl px-6 py-4 font-display text-2xl", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("header", { className: "border-b border-border", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Link, { to: "/", className: "mx-auto max-w-3xl px-6 py-4 font-display text-2xl block", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-primary", children: "ONLY" }),
       " 66"
     ] }) }),
@@ -99,6 +104,10 @@ function Onboarding() {
       step === 4 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-6", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "font-display text-4xl uppercase", children: "Reminder time" }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-muted-foreground text-sm", children: "We'll ping your browser daily at this time. You'll be asked for permission after this." }),
+        !existingDisplayName && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "block font-mono text-xs uppercase tracking-widest text-muted-foreground mb-2", children: "What should we call you?" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("input", { value: displayName, onChange: (e) => setDisplayName(e.target.value), placeholder: "Optional", className: "w-full rounded-sm border border-border bg-surface px-4 py-3 font-mono", maxLength: 50 })
+        ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "time", value: reminderTime, onChange: (e) => setReminderTime(e.target.value), className: "rounded-sm border border-border bg-surface px-4 py-3 font-mono text-lg" }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "rounded-sm border border-border bg-surface p-4 text-sm", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "font-mono text-xs uppercase tracking-widest text-muted-foreground mb-2", children: "[ CONFIRM ]" }),
