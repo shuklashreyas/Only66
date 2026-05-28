@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import knightHero from "@/assets/knight-hero.png";
+import { WallHero } from "@/components/landing/WallHero";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -87,20 +87,9 @@ function Landing() {
             </div>
           </div>
 
-          {/* Knight */}
-          <div className="relative flex items-center justify-center md:justify-end">
-            <div
-              aria-hidden
-              className="absolute inset-0 m-auto h-3/4 w-3/4 rounded-full bg-primary/30 blur-3xl animate-knight-glow"
-            />
-            <img
-              src={knightHero}
-              alt="Red and white knight standing guard over your 66-day streak"
-              width={1024}
-              height={1024}
-              className="relative w-full max-w-[480px] drop-shadow-[0_0_40px_oklch(0.62_0.24_25/0.5)] animate-knight-float"
-            />
-          </div>
+          {/* The 66-Day Wall */}
+          <WallHero />
+
         </div>
       </section>
 
