@@ -14,7 +14,151 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      challenges: {
+        Row: {
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["challenge_kind"]
+          motivation: string | null
+          name: string
+          reminder_time: string
+          start_date: string
+          status: Database["public"]["Enums"]["challenge_status"]
+          tone: Database["public"]["Enums"]["challenge_tone"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: Database["public"]["Enums"]["challenge_kind"]
+          motivation?: string | null
+          name: string
+          reminder_time?: string
+          start_date: string
+          status?: Database["public"]["Enums"]["challenge_status"]
+          tone?: Database["public"]["Enums"]["challenge_tone"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["challenge_kind"]
+          motivation?: string | null
+          name?: string
+          reminder_time?: string
+          start_date?: string
+          status?: Database["public"]["Enums"]["challenge_status"]
+          tone?: Database["public"]["Enums"]["challenge_tone"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      check_ins: {
+        Row: {
+          almost_folded: boolean
+          challenge_id: string
+          completed: boolean
+          created_at: string
+          date: string
+          day_number: number
+          difficulty: number | null
+          id: string
+          notes: string | null
+          trigger: string | null
+          user_id: string
+        }
+        Insert: {
+          almost_folded?: boolean
+          challenge_id: string
+          completed?: boolean
+          created_at?: string
+          date: string
+          day_number: number
+          difficulty?: number | null
+          id?: string
+          notes?: string | null
+          trigger?: string | null
+          user_id: string
+        }
+        Update: {
+          almost_folded?: boolean
+          challenge_id?: string
+          completed?: boolean
+          created_at?: string
+          date?: string
+          day_number?: number
+          difficulty?: number | null
+          id?: string
+          notes?: string | null
+          trigger?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "check_ins_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      panic_events: {
+        Row: {
+          challenge_id: string
+          id: string
+          occurred_at: string
+          resolved: boolean
+          user_id: string
+        }
+        Insert: {
+          challenge_id: string
+          id?: string
+          occurred_at?: string
+          resolved?: boolean
+          user_id: string
+        }
+        Update: {
+          challenge_id?: string
+          id?: string
+          occurred_at?: string
+          resolved?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "panic_events_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +167,9 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      challenge_kind: "build" | "quit"
+      challenge_status: "active" | "completed" | "abandoned"
+      challenge_tone: "chill" | "strict" | "brutal" | "funny"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +296,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      challenge_kind: ["build", "quit"],
+      challenge_status: ["active", "completed", "abandoned"],
+      challenge_tone: ["chill", "strict", "brutal", "funny"],
+    },
   },
 } as const
