@@ -1,6 +1,7 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { getLatestAbandonedChallenge } from "@/lib/storage";
+import { play } from "@/lib/sound";
 
 export const Route = createFileRoute("/_authenticated/folded")({
   head: () => ({ meta: [{ title: "You folded — Only 66" }] }),
@@ -29,6 +30,7 @@ function FoldedPage() {
     }
 
     setName(challenge.name);
+    play("gameover");
   }, [navigate]);
 
   return (

@@ -3,14 +3,16 @@ const SFX_SRC = {
   stamp: "/sounds/stamp.mp3",
   panic: "/sounds/panic.mp3",
   tick: "/sounds/tick.mp3",
-  sword: "/sounds/sword.mp3"
+  sword: "/sounds/sword.mp3",
+  gameover: "/sounds/gameover.mp3"
 };
 const SFX_VOL = {
   click: 0.25,
   stamp: 0.7,
   panic: 0.6,
   tick: 0.5,
-  sword: 0.7
+  sword: 0.7,
+  gameover: 0.7
 };
 const MUTE_KEY = "only66:muted";
 function isMuted() {

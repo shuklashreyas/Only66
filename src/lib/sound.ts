@@ -1,7 +1,7 @@
 // Lightweight sound manager for Only 66.
 // Honors a global mute flag stored in localStorage. Auto-loops BGM at low volume.
 
-type SfxName = "click" | "stamp" | "panic" | "tick" | "sword";
+type SfxName = "click" | "stamp" | "panic" | "tick" | "sword" | "gameover";
 
 const SFX_SRC: Record<SfxName, string> = {
   click: "/sounds/click.mp3",
@@ -9,6 +9,7 @@ const SFX_SRC: Record<SfxName, string> = {
   panic: "/sounds/panic.mp3",
   tick: "/sounds/tick.mp3",
   sword: "/sounds/sword.mp3",
+  gameover: "/sounds/gameover.mp3",
 };
 
 const SFX_VOL: Record<SfxName, number> = {
@@ -17,6 +18,7 @@ const SFX_VOL: Record<SfxName, number> = {
   panic: 0.6,
   tick: 0.5,
   sword: 0.7,
+  gameover: 0.7,
 };
 
 const MUTE_KEY = "only66:muted";

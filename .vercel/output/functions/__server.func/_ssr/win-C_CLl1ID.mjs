@@ -1,6 +1,6 @@
 import { r as reactExports, j as jsxRuntimeExports } from "../_libs/react.mjs";
 import { u as useNavigate, L as Link } from "../_libs/tanstack__react-router.mjs";
-import { g as getActiveChallengeForUser, u as updateChallenge } from "./router-DgpEWPDH.mjs";
+import { g as getActiveChallengeForUser, u as updateChallenge } from "./router-CKAbYjWb.mjs";
 import "../_libs/sonner.mjs";
 import "../_libs/tanstack__router-core.mjs";
 import "../_libs/tanstack__history.mjs";

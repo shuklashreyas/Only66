@@ -2,7 +2,7 @@ import { r as reactExports, j as jsxRuntimeExports } from "../_libs/react.mjs";
 import { u as useNavigate } from "../_libs/tanstack__react-router.mjs";
 import { t as toast } from "../_libs/sonner.mjs";
 import { t as todayIso } from "./day-math-OKL4F-bz.mjs";
-import { a as createChallenge } from "./router-DgpEWPDH.mjs";
+import { a as createChallenge } from "./router-CKAbYjWb.mjs";
 import "../_libs/tanstack__router-core.mjs";
 import "../_libs/tanstack__history.mjs";
 import "../_libs/cookie-es.mjs";

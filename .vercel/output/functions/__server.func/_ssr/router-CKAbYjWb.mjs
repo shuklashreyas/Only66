@@ -33,7 +33,7 @@ const Toaster = ({ ...props }) => {
     }
   );
 };
-const appCss = "/assets/styles-EKfU2bR4.css";
+const appCss = "/assets/styles-i1Ja6SH3.css";
 function NotFoundComponent() {
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex min-h-screen items-center justify-center bg-background px-4", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "max-w-md text-center", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "text-7xl font-display text-primary", children: "404" }),
@@ -88,10 +88,15 @@ const Route$7 = createRootRouteWithContext()({
       { property: "og:title", content: "Only 66" },
       { property: "og:description", content: "Pick one habit. Survive 66 days." },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" }
+      { property: "og:image", content: "/logo.png" },
+      { property: "og:image:alt", content: "Only 66 logo" },
+      { name: "twitter:card", content: "summary" },
+      { name: "twitter:image", content: "/logo.png" }
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      { rel: "icon", href: "/logo.png", type: "image/png" },
+      { rel: "apple-touch-icon", href: "/logo.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -117,7 +122,7 @@ function RootShell({ children }) {
 function RootComponent() {
   const { queryClient } = Route$7.useRouteContext();
   reactExports.useEffect(() => {
-    import("./sound-BhILfpO5.mjs").then(({ wireGlobalClickSound, playBgm }) => {
+    import("./sound--O_4J7dP.mjs").then(({ wireGlobalClickSound, playBgm }) => {
       wireGlobalClickSound();
       const startOnGesture = () => {
         playBgm();
@@ -228,7 +233,7 @@ function createCheckIn(data) {
 function generateId() {
   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
-const $$splitComponentImporter$6 = () => import("./login-DFW2Vgsu.mjs");
+const $$splitComponentImporter$6 = () => import("./login-CROq_yj0.mjs");
 const Route$6 = createFileRoute("/login")({
   head: () => ({
     meta: [{
@@ -281,11 +286,20 @@ const Route$4 = createFileRoute("/")({
     }, {
       property: "og:description",
       content: "Pick one habit. Survive 66 days."
+    }, {
+      property: "og:image",
+      content: "/logo.png"
+    }, {
+      property: "og:image:alt",
+      content: "Only 66 logo"
+    }, {
+      name: "twitter:image",
+      content: "/logo.png"
     }]
   }),
   component: lazyRouteComponent($$splitComponentImporter$4, "component")
 });
-const $$splitComponentImporter$3 = () => import("./win-BCp1j0Y9.mjs");
+const $$splitComponentImporter$3 = () => import("./win-C_CLl1ID.mjs");
 const Route$3 = createFileRoute("/_authenticated/win")({
   head: () => ({
     meta: [{
@@ -294,7 +308,7 @@ const Route$3 = createFileRoute("/_authenticated/win")({
   }),
   component: lazyRouteComponent($$splitComponentImporter$3, "component")
 });
-const $$splitComponentImporter$2 = () => import("./onboarding-Cy72XfeC.mjs");
+const $$splitComponentImporter$2 = () => import("./onboarding-BKGKWao9.mjs");
 const Route$2 = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
     meta: [{
@@ -312,7 +326,7 @@ const Route$2 = createFileRoute("/_authenticated/onboarding")({
   },
   component: lazyRouteComponent($$splitComponentImporter$2, "component")
 });
-const $$splitComponentImporter$1 = () => import("./folded-CxOxdXmM.mjs");
+const $$splitComponentImporter$1 = () => import("./folded-CIH1f9xo.mjs");
 const Route$1 = createFileRoute("/_authenticated/folded")({
   head: () => ({
     meta: [{
@@ -332,7 +346,7 @@ const Route$1 = createFileRoute("/_authenticated/folded")({
   },
   component: lazyRouteComponent($$splitComponentImporter$1, "component")
 });
-const $$splitComponentImporter = () => import("./dashboard-BgUWEcE5.mjs");
+const $$splitComponentImporter = () => import("./dashboard-F1w__O2j.mjs");
 const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [{

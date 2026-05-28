@@ -1,6 +1,7 @@
 import { r as reactExports, j as jsxRuntimeExports } from "../_libs/react.mjs";
 import { u as useNavigate, L as Link } from "../_libs/tanstack__react-router.mjs";
-import { f as getLatestAbandonedChallenge } from "./router-DgpEWPDH.mjs";
+import { f as getLatestAbandonedChallenge } from "./router-CKAbYjWb.mjs";
+import { play } from "./sound--O_4J7dP.mjs";
 import "../_libs/sonner.mjs";
 import "../_libs/tanstack__router-core.mjs";
 import "../_libs/tanstack__history.mjs";
@@ -29,6 +30,7 @@ function FoldedPage() {
       return;
     }
     setName(challenge.name);
+    play("gameover");
   }, [navigate]);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "min-h-screen bg-background flex flex-col", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("header", { className: "border-b border-border", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mx-auto max-w-3xl px-6 py-4 font-display text-2xl", children: [

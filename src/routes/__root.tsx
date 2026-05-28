@@ -74,10 +74,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "Only 66" },
       { property: "og:description", content: "Pick one habit. Survive 66 days." },
       { property: "og:type", content: "website" },
+      { property: "og:image", content: "/logo.png" },
+      { property: "og:image:alt", content: "Only 66 logo" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:image", content: "/logo.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      { rel: "icon", href: "/logo.png", type: "image/png" },
+      { rel: "apple-touch-icon", href: "/logo.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {

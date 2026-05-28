@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { TOTAL_DAYS, dayNumber, todayIso } from "@/lib/day-math";
 import { pickReminder, pickProtocol, PANIC_LINES, MILESTONES, FINAL_DAY, type Tone } from "@/lib/tone";
+import { pickDailyQuote } from "@/lib/quotes";
 import { getActiveChallengeForUser, getCheckInsForChallenge, updateChallenge, type LocalChallenge, type LocalCheckIn } from "@/lib/storage";
 import { CheckInModal } from "@/components/dashboard/CheckInModal";
 import { PanicModal } from "@/components/dashboard/PanicModal";
@@ -239,6 +240,9 @@ function Dashboard() {
           </div>
           <p className="font-display text-2xl uppercase leading-tight">
             {pickProtocol(challenge.tone, challenge.kind, challenge.name, today)}
+          </p>
+          <p className="mt-3 border-t border-border/60 pt-3 font-mono text-xs leading-relaxed text-muted-foreground">
+            <span className="text-foreground">"{pickDailyQuote(today).text}"</span> — {pickDailyQuote(today).author}
           </p>
           {challenge.motivation && (
             <p className="mt-4 font-mono text-xs uppercase tracking-widest text-muted-foreground">
