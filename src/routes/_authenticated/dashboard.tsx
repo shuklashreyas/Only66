@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { TOTAL_DAYS, dayNumber, todayIso } from "@/lib/day-math";
 import { pickReminder, pickProtocol, PANIC_LINES, MILESTONES, FINAL_DAY, type Tone } from "@/lib/tone";
 import { pickDailyQuote } from "@/lib/quotes";
-import { getActiveChallengeForUser, getCheckInsForChallenge, updateChallenge, type LocalChallenge, type LocalCheckIn } from "@/lib/storage";
+import { getActiveChallengeForUser, getCheckInsForChallenge, getLocalUser, updateChallenge, type LocalChallenge, type LocalCheckIn } from "@/lib/storage";
 import { CheckInModal } from "@/components/dashboard/CheckInModal";
 import { PanicModal } from "@/components/dashboard/PanicModal";
 import { SettingsSheet } from "@/components/dashboard/SettingsSheet";
@@ -130,6 +130,7 @@ function Dashboard() {
       ? todayDone
       : false;
   const isNewlyUnlocked = newlyUnlockedDay === displayDay;
+  const displayName = getLocalUser()?.displayName?.trim() || null;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -202,6 +203,19 @@ function Dashboard() {
             </button>
           </div>
         </section>
+
+        {/* Welcome status line */}
+        <div className="flex flex-col gap-0.5">
+          <div className="font-mono text-[10px] uppercase tracking-[0.35em] text-muted-foreground/50">
+            [ OPERATIVE STATUS ]
+          </div>
+          <div className="font-display text-xl uppercase tracking-wider text-foreground drop-shadow-[0_0_8px_oklch(0.62_0.24_25/0.45)]">
+            {displayName
+              ? <>THE RUN CONTINUES, <span className="text-primary">{displayName}</span>.</>
+              : <>THE RUN CONTINUES.</>
+            }
+          </div>
+        </div>
 
         {/* 66-day grid + Transmission card */}
         <div className="flex flex-col lg:flex-row lg:items-start gap-6">
