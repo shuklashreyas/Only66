@@ -53,3 +53,66 @@ export const PANIC_LINES: Record<Tone, string> = {
   chill: "Breathe. {day} days are still yours. The urge passes.",
   funny: "WAIT. {day} DAYS. THE GOBLIN BEGS YOU. 60 SECONDS.",
 };
+
+const PROTOCOLS: Record<"build" | "quit", Record<Tone, string[]>> = {
+  build: {
+    strict: [
+      "Execute {habit} today. No negotiation. No 'tomorrow'.",
+      "{habit}. Done before sundown. That's the order.",
+      "Drop everything else first. {habit} comes before comfort.",
+    ],
+    brutal: [
+      "Do {habit}. You already know what skipping today costs you.",
+      "{habit} today, or admit you didn't mean it.",
+      "Every day you skip {habit} is a day you chose comfort over the thing you said mattered.",
+    ],
+    chill: [
+      "Today's move: {habit}. Small step, big chain.",
+      "Carve out a moment for {habit}. You'll feel it tomorrow.",
+      "{habit} today. Future you sends thanks.",
+    ],
+    funny: [
+      "GOBLIN COMMAND: {habit}. NOW. THE GRID HUNGERS.",
+      "Do {habit} or I haunt your for-you page.",
+      "{habit} today. Or the goblin tells everyone.",
+    ],
+  },
+  quit: {
+    strict: [
+      "Do not touch it. {habit} is off the table. Period.",
+      "When the urge hits: count to 10, walk away. {habit} stays dead.",
+      "Today you do not fold. {habit} does not get a vote.",
+    ],
+    brutal: [
+      "Every time you go back to {habit}, you bury what you started.",
+      "You said no to {habit}. Mean it for one more day.",
+      "{habit} won't fix anything. It never has. Sit with that.",
+    ],
+    chill: [
+      "Urge to {habit}? Let it pass. It always does.",
+      "One more day without {habit}. That's all today asks.",
+      "When {habit} calls, breathe and stamp the grid instead.",
+    ],
+    funny: [
+      "TOUCH {habit} AND THE GOBLIN WEEPS. DON'T DO IT.",
+      "{habit} is a trap. Goblin says no. Goblin is right.",
+      "If you fold to {habit} today, the grid tells your mom.",
+    ],
+  },
+};
+
+export function pickProtocol(
+  tone: Tone,
+  kind: "build" | "quit",
+  habit: string,
+  day: number,
+) {
+  const pool = PROTOCOLS[kind][tone];
+  // Stable per-day pick
+  const idx = ((day % pool.length) + pool.length) % pool.length;
+  return pool[idx].replaceAll("{habit}", habit || (kind === "build" ? "your habit" : "the urge"));
+}
+
+// Milestone days where gold accents apply.
+export const MILESTONES = new Set<number>([22, 44, 66]);
+export const FINAL_DAY = 66;
