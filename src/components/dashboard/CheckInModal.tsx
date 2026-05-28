@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { todayIso } from "@/lib/day-math";
+import { play } from "@/lib/sound";
 
 type Challenge = { id: string; user_id: string; name: string };
 
@@ -41,6 +42,7 @@ export function CheckInModal({
         notes: notes.trim() || null,
       });
       if (error) throw error;
+      play("stamp");
       toast.success(`Day ${day} survived.`);
       await onDone();
     } catch (err: any) {

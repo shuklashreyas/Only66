@@ -7,6 +7,7 @@ import { pickReminder, pickProtocol, PANIC_LINES, MILESTONES, FINAL_DAY, type To
 import { CheckInModal } from "@/components/dashboard/CheckInModal";
 import { PanicModal } from "@/components/dashboard/PanicModal";
 import { SettingsSheet } from "@/components/dashboard/SettingsSheet";
+import { SoundToggle } from "@/components/SoundToggle";
 
 type Challenge = {
   id: string;
@@ -132,12 +133,16 @@ function Dashboard() {
       <header className="border-b border-border">
         <div className="mx-auto max-w-5xl px-6 py-4 flex items-center justify-between">
           <Link to="/" className="font-display text-2xl"><span className="text-primary">ONLY</span> 66</Link>
-          <button
-            onClick={() => setShowSettings(true)}
-            className="rounded-sm border border-border px-3 py-2 text-xs font-display uppercase tracking-wider hover:bg-surface"
-          >
-            Settings
-          </button>
+          <div className="flex items-center gap-2">
+            <SoundToggle />
+            <button
+              onClick={() => setShowSettings(true)}
+              className="rounded-sm border border-border px-3 py-2 text-xs font-display uppercase tracking-wider hover:bg-surface"
+            >
+              Settings
+            </button>
+          </div>
+
         </div>
       </header>
 
