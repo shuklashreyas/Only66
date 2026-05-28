@@ -36,9 +36,9 @@ function FoldedPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <header className="border-b border-border">
-        <div className="mx-auto max-w-3xl px-6 py-4 font-display text-2xl">
+        <Link to="/" className="mx-auto max-w-3xl px-6 py-4 font-display text-2xl block">
           <span className="text-primary">ONLY</span> 66
-        </div>
+        </Link>
       </header>
       <div className="flex-1 flex items-center justify-center px-6 py-16">
         <div className="max-w-xl text-center">
