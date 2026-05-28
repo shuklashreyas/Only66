@@ -62,52 +62,83 @@
 :root {
   --radius: 0.25rem;
 
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-
-  --surface: oklch(0.205 0 0);
-  --surface-2: oklch(0.255 0 0);
-
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-
-  --primary: oklch(0.62 0.24 25);
-  --primary-foreground: oklch(0.985 0 0);
-
-  --secondary: oklch(0.255 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-
-  --muted: oklch(0.255 0 0);
-  --muted-foreground: oklch(0.65 0 0);
-
-  --accent: oklch(0.3 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-
-  --destructive: oklch(0.62 0.24 25);
-  --destructive-foreground: oklch(0.985 0 0);
-
-  --border: oklch(0.3 0 0);
-  --input: oklch(0.3 0 0);
-  --ring: oklch(0.62 0.24 25);
-
-  --success: oklch(0.72 0.19 145);
-  --reward: oklch(0.85 0.18 90);
-
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.62 0.24 25);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.255 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.3 0 0);
-  --sidebar-ring: oklch(0.62 0.24 25);
+  /* Bloodline (default) */
+  --background: #0d0d0d;
+  --foreground: #fcfcfc;
+  --surface: #1a1a1a;
+  --surface-2: #222222;
+  --border: #2e2e2e;
+  --primary: #ff2a2a;
+  --primary-muted: #7f1d1d;
+  --reward: #facc15;
+  --ring: var(--primary);
+  --input: var(--border);
+  --muted: var(--surface-2);
+  --muted-foreground: #9f9f9f;
+  --secondary: var(--surface-2);
+  --secondary-foreground: var(--foreground);
+  --accent: var(--surface-2);
+  --accent-foreground: var(--foreground);
+  --destructive: var(--primary);
+  --destructive-foreground: var(--foreground);
+  --card: var(--surface);
+  --card-foreground: var(--foreground);
+  --popover: var(--surface);
+  --popover-foreground: var(--foreground);
+  --primary-foreground: #ffffff;
+  --success: #39bf73;
+  --sidebar: var(--surface);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--surface-2);
+  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
+:root[data-theme="bloodline"] {
+  --background: #0d0d0d;
+  --foreground: #fcfcfc;
+  --surface: #1a1a1a;
+  --surface-2: #222222;
+  --border: #2e2e2e;
+  --primary: #ff2a2a;
+  --primary-muted: #7f1d1d;
+  --reward: #facc15;
+}
+
+:root[data-theme="neon-arena"] {
+  --background: #080812;
+  --foreground: #f8f7ff;
+  --surface: #141428;
+  --surface-2: #1a1a3a;
+  --border: #2d2a5a;
+  --primary: #a855f7;
+  --primary-muted: #4c1d95;
+  --reward: #22d3ee;
+}
+
+:root[data-theme="iron-mode"] {
+  --background: #090909;
+  --foreground: #f5f5f5;
+  --surface: #181818;
+  --surface-2: #232323;
+  --border: #3a3a3a;
+  --primary: #d4d4d4;
+  --primary-muted: #737373;
+  --reward: #ffffff;
+}
+
+:root[data-theme="gold-run"] {
+  --background: #0d0b05;
+  --foreground: #fff7ed;
+  --surface: #1c1608;
+  --surface-2: #241d0d;
+  --border: #3f3211;
+  --primary: #facc15;
+  --primary-muted: #854d0e;
+  --reward: #f97316;
 }
 
 @keyframes slide-up {
@@ -116,8 +147,8 @@
 }
 
 @keyframes pulse-red {
-  0%, 100% { box-shadow: 0 0 0 0 oklch(0.62 0.24 25 / 0.6); }
-  50% { box-shadow: 0 0 0 14px oklch(0.62 0.24 25 / 0); }
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 60%, transparent); }
+  50% { box-shadow: 0 0 0 14px color-mix(in srgb, var(--primary) 0%, transparent); }
 }
 
 @keyframes survived-pop {
@@ -168,8 +199,8 @@
     to bottom,
     transparent 0,
     transparent 3px,
-    oklch(0.62 0.24 25 / 0.06) 3px,
-    oklch(0.62 0.24 25 / 0.06) 4px
+    color-mix(in srgb, var(--primary) 12%, transparent) 3px,
+    color-mix(in srgb, var(--primary) 12%, transparent) 4px
   );
   mix-blend-mode: screen;
 }

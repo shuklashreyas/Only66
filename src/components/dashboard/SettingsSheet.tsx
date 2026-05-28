@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { THEMES, getStoredTheme, setStoredTheme, type AppTheme } from "@/lib/theme";
 import { TONE_LABELS, type Tone } from "@/lib/tone";
 import { updateChallenge, clearLocalUser, getUserDisplayName, setUserDisplayName, type LocalChallenge } from "@/lib/storage";
 
@@ -17,6 +18,7 @@ export function SettingsSheet({
   const [tone, setTone] = useState<Tone>(challenge.tone);
   const [reminderTime, setReminderTime] = useState(challenge.reminder_time.slice(0, 5));
   const [displayName, setDisplayName] = useState(getUserDisplayName() ?? "");
+  const [theme, setTheme] = useState<AppTheme>(getStoredTheme());
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -29,6 +31,7 @@ export function SettingsSheet({
     setSaving(true);
     try {
       setUserDisplayName(displayName);
+      setStoredTheme(theme);
       updateChallenge(challenge.id, { tone, reminder_time: reminderTime + ":00" });
       toast.success("Saved.");
       onChanged();
@@ -109,6 +112,29 @@ export function SettingsSheet({
               maxLength={50}
               className="w-full rounded-sm border border-border bg-background px-3 py-2 font-mono"
             />
+          </div>
+
+          <div>
+            <div className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-2">THEME</div>
+            <div className="grid gap-2">
+              {THEMES.map((themeOption) => {
+                const selected = themeOption.id === theme;
+                return (
+                  <button
+                    key={themeOption.id}
+                    onClick={() => setTheme(themeOption.id)}
+                    className={`w-full rounded-sm border px-3 py-2 text-left bg-background transition ${
+                      selected
+                        ? "border-primary shadow-[0_0_14px_color-mix(in_srgb,var(--primary)_35%,transparent)]"
+                        : "border-border hover:bg-surface-2"
+                    }`}
+                  >
+                    <div className="font-mono text-xs uppercase tracking-widest text-foreground">{themeOption.name}</div>
+                    <div className="mt-1 text-xs text-muted-foreground">{themeOption.description}</div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           <div className="space-y-2">

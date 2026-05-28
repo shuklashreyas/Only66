@@ -33,7 +33,58 @@ const Toaster = ({ ...props }) => {
     }
   );
 };
-const appCss = "/assets/styles-DB0ctUhu.css";
+const THEME_STORAGE_KEY = "only66_theme";
+const DEFAULT_THEME = "bloodline";
+const THEMES = [
+  {
+    id: "bloodline",
+    name: "BLOODLINE",
+    description: "Default black and red Only 66 theme."
+  },
+  {
+    id: "neon-arena",
+    name: "NEON ARENA",
+    description: "Black, purple, and cyan arcade signal."
+  },
+  {
+    id: "iron-mode",
+    name: "IRON MODE",
+    description: "Brutal black, gray, and white minimalism."
+  },
+  {
+    id: "gold-run",
+    name: "GOLD RUN",
+    description: "Black and gold victory-focused palette."
+  }
+];
+function isTheme(value) {
+  return value === "bloodline" || value === "neon-arena" || value === "iron-mode" || value === "gold-run";
+}
+function getStoredTheme() {
+  try {
+    const value = localStorage.getItem(THEME_STORAGE_KEY);
+    return value && isTheme(value) ? value : DEFAULT_THEME;
+  } catch {
+    return DEFAULT_THEME;
+  }
+}
+function applyTheme(theme) {
+  if (typeof document === "undefined") return;
+  document.documentElement.dataset.theme = theme;
+}
+function setStoredTheme(theme) {
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
+  } catch {
+  }
+  applyTheme(theme);
+}
+function initTheme() {
+  const theme = getStoredTheme();
+  applyTheme(theme);
+  return theme;
+}
+const appCss = "/assets/styles-DRIVwUla.css";
 function NotFoundComponent() {
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex min-h-screen items-center justify-center bg-background px-4", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "max-w-md text-center", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "text-7xl font-display text-primary", children: "404" }),
@@ -121,6 +172,9 @@ function RootShell({ children }) {
 }
 function RootComponent() {
   const { queryClient } = Route$7.useRouteContext();
+  reactExports.useEffect(() => {
+    initTheme();
+  }, []);
   reactExports.useEffect(() => {
     import("./sound--O_4J7dP.mjs").then(({ wireGlobalClickSound, playBgm }) => {
       wireGlobalClickSound();
@@ -258,7 +312,7 @@ function createCheckIn(data) {
 function generateId() {
   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
-const $$splitComponentImporter$6 = () => import("./login-CftoySj8.mjs");
+const $$splitComponentImporter$6 = () => import("./login-C9ndOrMo.mjs");
 const Route$6 = createFileRoute("/login")({
   head: () => ({
     meta: [{
@@ -324,7 +378,7 @@ const Route$4 = createFileRoute("/")({
   }),
   component: lazyRouteComponent($$splitComponentImporter$4, "component")
 });
-const $$splitComponentImporter$3 = () => import("./win-pjwD9kZl.mjs");
+const $$splitComponentImporter$3 = () => import("./win-DvMCzm3M.mjs");
 const Route$3 = createFileRoute("/_authenticated/win")({
   head: () => ({
     meta: [{
@@ -333,7 +387,7 @@ const Route$3 = createFileRoute("/_authenticated/win")({
   }),
   component: lazyRouteComponent($$splitComponentImporter$3, "component")
 });
-const $$splitComponentImporter$2 = () => import("./onboarding-YL7uQACv.mjs");
+const $$splitComponentImporter$2 = () => import("./onboarding-CtX8OP17.mjs");
 const Route$2 = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
     meta: [{
@@ -351,7 +405,7 @@ const Route$2 = createFileRoute("/_authenticated/onboarding")({
   },
   component: lazyRouteComponent($$splitComponentImporter$2, "component")
 });
-const $$splitComponentImporter$1 = () => import("./folded-B53V4B44.mjs");
+const $$splitComponentImporter$1 = () => import("./folded-CFuLyjj4.mjs");
 const Route$1 = createFileRoute("/_authenticated/folded")({
   head: () => ({
     meta: [{
@@ -371,7 +425,7 @@ const Route$1 = createFileRoute("/_authenticated/folded")({
   },
   component: lazyRouteComponent($$splitComponentImporter$1, "component")
 });
-const $$splitComponentImporter = () => import("./dashboard-DKEhLAYJ.mjs");
+const $$splitComponentImporter = () => import("./dashboard-BAm6tKuW.mjs");
 const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [{
@@ -456,6 +510,7 @@ const router = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProper
   getRouter
 }, Symbol.toStringTag, { value: "Module" }));
 export {
+  THEMES as T,
   createChallenge as a,
   createCheckIn as b,
   clearLocalUser as c,
@@ -463,8 +518,10 @@ export {
   getCheckInsForChallenge as e,
   getLatestAbandonedChallenge as f,
   getActiveChallengeForUser as g,
-  getUserDisplayName as h,
+  getStoredTheme as h,
+  getUserDisplayName as i,
+  setUserDisplayName as j,
   router as r,
-  setUserDisplayName as s,
+  setStoredTheme as s,
   updateChallenge as u
 };

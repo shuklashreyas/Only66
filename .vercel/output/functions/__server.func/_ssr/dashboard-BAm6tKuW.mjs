@@ -2,7 +2,7 @@ import { r as reactExports, j as jsxRuntimeExports } from "../_libs/react.mjs";
 import { u as useNavigate, L as Link } from "../_libs/tanstack__react-router.mjs";
 import { t as toast } from "../_libs/sonner.mjs";
 import { d as dayNumber, t as todayIso, T as TOTAL_DAYS } from "./day-math-OKL4F-bz.mjs";
-import { h as getUserDisplayName, u as updateChallenge, g as getActiveChallengeForUser, e as getCheckInsForChallenge, b as createCheckIn, s as setUserDisplayName, c as clearLocalUser } from "./router-KBMZREWh.mjs";
+import { i as getUserDisplayName, u as updateChallenge, g as getActiveChallengeForUser, e as getCheckInsForChallenge, h as getStoredTheme, T as THEMES, b as createCheckIn, j as setUserDisplayName, s as setStoredTheme, c as clearLocalUser } from "./router-ARfofR06.mjs";
 import { isMuted, play, startTick, stopTick, setMuted, playBgm } from "./sound--O_4J7dP.mjs";
 import "../_libs/tanstack__router-core.mjs";
 import "../_libs/tanstack__history.mjs";
@@ -354,6 +354,7 @@ function SettingsSheet({
   const [tone, setTone] = reactExports.useState(challenge.tone);
   const [reminderTime, setReminderTime] = reactExports.useState(challenge.reminder_time.slice(0, 5));
   const [displayName, setDisplayName] = reactExports.useState(getUserDisplayName() ?? "");
+  const [theme, setTheme] = reactExports.useState(getStoredTheme());
   const [saving, setSaving] = reactExports.useState(false);
   reactExports.useEffect(() => {
     const onEsc = (e) => e.key === "Escape" && onClose();
@@ -364,6 +365,7 @@ function SettingsSheet({
     setSaving(true);
     try {
       setUserDisplayName(displayName);
+      setStoredTheme(theme);
       updateChallenge(challenge.id, { tone, reminder_time: reminderTime + ":00" });
       toast.success("Saved.");
       onChanged();
@@ -436,6 +438,24 @@ function SettingsSheet({
             className: "w-full rounded-sm border border-border bg-background px-3 py-2 font-mono"
           }
         )
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "font-mono text-xs uppercase tracking-widest text-muted-foreground mb-2", children: "Theme" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "grid gap-2", children: THEMES.map((themeOption) => {
+          const selected = themeOption.id === theme;
+          return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            "button",
+            {
+              onClick: () => setTheme(themeOption.id),
+              className: `w-full rounded-sm border px-3 py-2 text-left bg-background transition ${selected ? "border-primary shadow-[0_0_14px_color-mix(in_srgb,var(--primary)_35%,transparent)]" : "border-border hover:bg-surface-2"}`,
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "font-mono text-xs uppercase tracking-widest text-foreground", children: themeOption.name }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-1 text-xs text-muted-foreground", children: themeOption.description })
+              ]
+            },
+            themeOption.id
+          );
+        }) })
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx(
