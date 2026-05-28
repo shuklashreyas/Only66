@@ -142,8 +142,9 @@ function Onboarding() {
             <div className="grid gap-3">
               {([
                 ["strict", "Drill sergeant", "No excuses. No softness."],
-                ["supportive", "Hype coach", "Warm and rooting for you."],
-                ["chaotic", "Goblin mode", "Unhinged. Possibly threatening."],
+                ["brutal", "Brutal honest", "Cold truth. You signed up for this."],
+                ["chill", "Chill coach", "Warm and rooting for you."],
+                ["funny", "Goblin mode", "Unhinged. Possibly threatening."],
               ] as const).map(([val, label, desc]) => (
                 <button
                   key={val}
