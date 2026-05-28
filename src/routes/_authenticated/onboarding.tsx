@@ -1,22 +1,15 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 import { toast } from "sonner";
 import { todayIso } from "@/lib/day-math";
+import { createChallenge, getActiveChallengeForUser } from "@/lib/storage";
 import type { Tone } from "@/lib/tone";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({ meta: [{ title: "Choose your challenge — Only 66" }] }),
   beforeLoad: async () => {
-    const { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) return;
-    const { data } = await supabase
-      .from("challenges")
-      .select("id")
-      .eq("user_id", userData.user.id)
-      .eq("status", "active")
-      .maybeSingle();
-    if (data) throw redirect({ to: "/dashboard" });
+    const activeChallenge = getActiveChallengeForUser();
+    if (activeChallenge) throw redirect({ to: "/dashboard" });
   },
   component: Onboarding,
 });
@@ -34,11 +27,7 @@ function Onboarding() {
   const handleStart = async () => {
     setSubmitting(true);
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) throw new Error("Not signed in");
-
-      const { error } = await supabase.from("challenges").insert({
-        user_id: userData.user.id,
+      createChallenge({
         name: name.trim(),
         kind,
         motivation: motivation.trim() || null,
@@ -47,13 +36,13 @@ function Onboarding() {
         reminder_time: reminderTime + ":00",
         status: "active",
       });
-      if (error) throw error;
 
       // Request notification permission (non-blocking)
       if (typeof Notification !== "undefined" && Notification.permission === "default") {
         try { await Notification.requestPermission(); } catch {}
       }
 
+      toast.success("Challenge started!");
       navigate({ to: "/dashboard" });
     } catch (err: any) {
       toast.error(err.message || "Could not start challenge");

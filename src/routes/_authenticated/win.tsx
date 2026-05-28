@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { getActiveChallengeForUser, updateChallenge } from "@/lib/storage";
 
 export const Route = createFileRoute("/_authenticated/win")({
   head: () => ({ meta: [{ title: "Day 66 — You won. Only 66" }] }),
@@ -12,28 +12,15 @@ function WinPage() {
   const [name, setName] = useState("the habit");
 
   useEffect(() => {
-    (async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) return;
-      const { data } = await supabase
-        .from("challenges")
-        .select("name, status")
-        .eq("user_id", userData.user.id)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (data) setName(data.name);
-    })();
+    const challenge = getActiveChallengeForUser();
+    if (challenge) setName(challenge.name);
   }, []);
 
-  const handleNew = async () => {
-    const { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) return;
-    await supabase
-      .from("challenges")
-      .update({ status: "completed" })
-      .eq("user_id", userData.user.id)
-      .eq("status", "active");
+  const handleNew = () => {
+    const challenge = getActiveChallengeForUser();
+    if (challenge) {
+      updateChallenge(challenge.id, { status: "completed" });
+    }
     navigate({ to: "/onboarding" });
   };
 

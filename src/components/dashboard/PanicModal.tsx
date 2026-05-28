@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { play, startTick, stopTick } from "@/lib/sound";
-
-type Challenge = { id: string; user_id: string; motivation: string | null };
+import type { LocalChallenge } from "@/lib/storage";
 
 export function PanicModal({
   challenge,
@@ -11,22 +9,12 @@ export function PanicModal({
   message,
   onClose,
 }: {
-  challenge: Challenge;
+  challenge: LocalChallenge;
   day: number;
   message: string;
   onClose: () => void;
 }) {
   const [seconds, setSeconds] = useState(60);
-  const [logged, setLogged] = useState(false);
-
-  useEffect(() => {
-    if (!logged) {
-      supabase.from("panic_events").insert({
-        challenge_id: challenge.id,
-        user_id: challenge.user_id,
-      }).then(() => setLogged(true));
-    }
-  }, [challenge, logged]);
 
   // Panic warning on open + looping tick during countdown.
   useEffect(() => {
@@ -44,17 +32,11 @@ export function PanicModal({
     return () => clearTimeout(t);
   }, [seconds]);
 
-  const survived = async () => {
+  const survived = () => {
     play("sword");
-    await supabase
-      .from("panic_events")
-      .update({ resolved: true })
-      .eq("challenge_id", challenge.id)
-      .eq("resolved", false);
     toast.success("You held the line.");
     onClose();
   };
-
 
   return (
     <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">

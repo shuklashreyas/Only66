@@ -1,79 +1,39 @@
 import { createFileRoute, redirect, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TOTAL_DAYS, dayNumber, todayIso } from "@/lib/day-math";
 import { pickReminder, pickProtocol, PANIC_LINES, MILESTONES, FINAL_DAY, type Tone } from "@/lib/tone";
+import { getActiveChallengeForUser, getCheckInsForChallenge, updateChallenge, type LocalChallenge, type LocalCheckIn } from "@/lib/storage";
 import { CheckInModal } from "@/components/dashboard/CheckInModal";
 import { PanicModal } from "@/components/dashboard/PanicModal";
 import { SettingsSheet } from "@/components/dashboard/SettingsSheet";
 import { SoundToggle } from "@/components/SoundToggle";
 
-type Challenge = {
-  id: string;
-  user_id: string;
-  name: string;
-  kind: "build" | "quit";
-  motivation: string | null;
-  tone: Tone;
-  start_date: string;
-  reminder_time: string;
-  status: "active" | "completed" | "abandoned";
-};
-
-type CheckIn = {
-  id: string;
-  day_number: number;
-  date: string;
-  completed: boolean;
-};
-
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Only 66" }] }),
   beforeLoad: async () => {
-    const { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) return;
-    const { data } = await supabase
-      .from("challenges")
-      .select("id, status")
-      .eq("user_id", userData.user.id)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (!data) throw redirect({ to: "/onboarding" });
-    if (data.status === "completed") throw redirect({ to: "/win" });
+    const challenge = getActiveChallengeForUser();
+    if (!challenge) throw redirect({ to: "/onboarding" });
+    if (challenge.status === "completed") throw redirect({ to: "/win" });
   },
   component: Dashboard,
 });
 
 function Dashboard() {
   const navigate = useNavigate();
-  const [challenge, setChallenge] = useState<Challenge | null>(null);
-  const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
+  const [challenge, setChallenge] = useState<LocalChallenge | null>(null);
+  const [checkIns, setCheckIns] = useState<LocalCheckIn[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCheckIn, setShowCheckIn] = useState(false);
   const [showPanic, setShowPanic] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
-  const load = async () => {
-    const { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) return;
-    const { data: ch } = await supabase
-      .from("challenges")
-      .select("*")
-      .eq("user_id", userData.user.id)
-      .eq("status", "active")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+  const load = () => {
+    const ch = getActiveChallengeForUser();
     if (!ch) { navigate({ to: "/onboarding" }); return; }
-    setChallenge(ch as Challenge);
-    const { data: cins } = await supabase
-      .from("check_ins")
-      .select("id, day_number, date, completed")
-      .eq("challenge_id", ch.id)
-      .order("day_number");
-    setCheckIns((cins as CheckIn[]) ?? []);
+    setChallenge(ch);
+    const cins = getCheckInsForChallenge(ch.id);
+    setCheckIns(cins);
     setLoading(false);
   };
 
@@ -111,9 +71,8 @@ function Dashboard() {
   useEffect(() => {
     if (!challenge || loading) return;
     if (survivedCount >= TOTAL_DAYS) {
-      supabase.from("challenges").update({ status: "completed" }).eq("id", challenge.id).then(() => {
-        navigate({ to: "/win" });
-      });
+      updateChallenge(challenge.id, { status: "completed" });
+      navigate({ to: "/win" });
     }
   }, [survivedCount, challenge, loading, navigate]);
 
@@ -125,7 +84,7 @@ function Dashboard() {
     );
   }
 
-  const dayMap = new Map<number, CheckIn>();
+  const dayMap = new Map<number, LocalCheckIn>();
   checkIns.forEach((c) => dayMap.set(c.day_number, c));
 
   return (
@@ -281,7 +240,7 @@ function Dashboard() {
           challenge={challenge}
           day={today}
           onClose={() => setShowCheckIn(false)}
-          onDone={async () => { setShowCheckIn(false); await load(); }}
+          onDone={() => { setShowCheckIn(false); load(); }}
         />
       )}
       {showPanic && (

@@ -1,13 +1,20 @@
 import { createFileRoute, redirect, Outlet } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
+import { getLocalUser, getActiveChallengeForUser } from "@/lib/storage";
 
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async () => {
-    const { data, error } = await supabase.auth.getUser();
-    if (error || !data.user) {
+    const user = getLocalUser();
+    if (!user) {
       throw redirect({ to: "/login" });
     }
-    return { userId: data.user.id };
+    
+    // Check if user has an active challenge
+    const activeChallenge = getActiveChallengeForUser();
+    if (!activeChallenge) {
+      throw redirect({ to: "/onboarding" });
+    }
+    
+    return { userId: user.id };
   },
   component: () => <Outlet />,
 });

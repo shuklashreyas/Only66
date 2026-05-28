@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { todayIso } from "@/lib/day-math";
 import { play } from "@/lib/sound";
-
-type Challenge = { id: string; user_id: string; name: string };
+import { createCheckIn, type LocalChallenge } from "@/lib/storage";
 
 export function CheckInModal({
   challenge,
@@ -12,10 +10,10 @@ export function CheckInModal({
   onClose,
   onDone,
 }: {
-  challenge: Challenge;
+  challenge: LocalChallenge;
   day: number;
   onClose: () => void;
-  onDone: () => void | Promise<void>;
+  onDone: () => void;
 }) {
   const [difficulty, setDifficulty] = useState(3);
   const [almostFolded, setAlmostFolded] = useState(false);
@@ -28,12 +26,11 @@ export function CheckInModal({
     return () => window.removeEventListener("keydown", onEsc);
   }, [onClose]);
 
-  const submit = async () => {
+  const submit = () => {
     setSubmitting(true);
     try {
-      const { error } = await supabase.from("check_ins").insert({
+      createCheckIn({
         challenge_id: challenge.id,
-        user_id: challenge.user_id,
         day_number: day,
         date: todayIso(),
         completed: true,
@@ -41,13 +38,11 @@ export function CheckInModal({
         almost_folded: almostFolded,
         notes: notes.trim() || null,
       });
-      if (error) throw error;
       play("stamp");
       toast.success(`Day ${day} survived.`);
-      await onDone();
+      onDone();
     } catch (err: any) {
       toast.error(err.message || "Could not save");
-    } finally {
       setSubmitting(false);
     }
   };

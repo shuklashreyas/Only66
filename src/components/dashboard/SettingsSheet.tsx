@@ -1,24 +1,17 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TONE_LABELS, type Tone } from "@/lib/tone";
-
-type Challenge = {
-  id: string;
-  name: string;
-  tone: Tone;
-  reminder_time: string;
-};
+import { updateChallenge, deleteChallenge, clearLocalUser, type LocalChallenge } from "@/lib/storage";
 
 export function SettingsSheet({
   challenge,
   onClose,
   onChanged,
 }: {
-  challenge: Challenge;
+  challenge: LocalChallenge;
   onClose: () => void;
-  onChanged: () => void | Promise<void>;
+  onChanged: () => void;
 }) {
   const navigate = useNavigate();
   const [tone, setTone] = useState<Tone>(challenge.tone);
@@ -31,33 +24,28 @@ export function SettingsSheet({
     return () => window.removeEventListener("keydown", onEsc);
   }, [onClose]);
 
-  const save = async () => {
+  const save = () => {
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from("challenges")
-        .update({ tone, reminder_time: reminderTime + ":00" })
-        .eq("id", challenge.id);
-      if (error) throw error;
+      updateChallenge(challenge.id, { tone, reminder_time: reminderTime + ":00" });
       toast.success("Saved.");
-      await onChanged();
+      onChanged();
       onClose();
     } catch (err: any) {
       toast.error(err.message || "Save failed");
-    } finally {
       setSaving(false);
     }
   };
 
-  const abandon = async () => {
+  const abandon = () => {
     if (!confirm("Abandon this challenge? Your streak ends here.")) return;
-    await supabase.from("challenges").update({ status: "abandoned" }).eq("id", challenge.id);
+    updateChallenge(challenge.id, { status: "abandoned" });
     toast("Challenge abandoned.");
     navigate({ to: "/onboarding" });
   };
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
+  const signOut = () => {
+    clearLocalUser();
     navigate({ to: "/" });
   };
 
