@@ -2,7 +2,7 @@ export type Tone = "strict" | "brutal" | "chill" | "funny";
 
 export const TONE_LABELS: Record<Tone, string> = {
   strict: "Drill sergeant",
-  brutal: "Brutal honest",
+  brutal: "Brutally honest",
   chill: "Chill coach",
   funny: "Goblin mode",
 };
