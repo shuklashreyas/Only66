@@ -41,6 +41,15 @@ function Dashboard() {
     setLoading(false);
   };
 
+  const fold = () => {
+    if (!challenge) return;
+
+    updateChallenge(challenge.id, { status: "abandoned" });
+    toast("Challenge abandoned.");
+    setShowPanic(false);
+    navigate({ to: "/folded" });
+  };
+
   useEffect(() => { load(); }, []);
 
   const today = challenge ? dayNumber(challenge.start_date) : 0;
@@ -253,6 +262,7 @@ function Dashboard() {
           day={today}
           message={PANIC_LINES[challenge.tone].replace("{day}", String(survivedCount))}
           onClose={() => setShowPanic(false)}
+          onFold={fold}
         />
       )}
       {showSettings && (

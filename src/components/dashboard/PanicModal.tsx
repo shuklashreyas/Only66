@@ -8,11 +8,13 @@ export function PanicModal({
   day,
   message,
   onClose,
+  onFold,
 }: {
   challenge: LocalChallenge;
   day: number;
   message: string;
   onClose: () => void;
+  onFold: () => void;
 }) {
   const [seconds, setSeconds] = useState(60);
 
@@ -76,7 +78,7 @@ export function PanicModal({
             {seconds > 0 ? `WAIT ${seconds}S` : "I'm staying in"}
           </button>
           <button
-            onClick={onClose}
+            onClick={onFold}
             className="rounded-sm border border-border px-4 py-2 font-mono text-xs uppercase tracking-widest text-muted-foreground hover:text-primary hover:border-primary/60 hover:bg-surface"
           >
             I'm folding

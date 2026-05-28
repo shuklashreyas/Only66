@@ -88,6 +88,16 @@ export function getLatestChallenge(): LocalChallenge | null {
   return challenges.length > 0 ? challenges[challenges.length - 1] : null;
 }
 
+export function getLatestAbandonedChallenge(): LocalChallenge | null {
+  const challenges = getChallenges();
+  for (let index = challenges.length - 1; index >= 0; index--) {
+    if (challenges[index].status === "abandoned") {
+      return challenges[index];
+    }
+  }
+  return null;
+}
+
 export function getActiveChallengeForUser(): LocalChallenge | null {
   return getActiveChallenges()[0] ?? null;
 }

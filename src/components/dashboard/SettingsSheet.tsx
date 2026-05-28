@@ -41,7 +41,7 @@ export function SettingsSheet({
     if (!confirm("Abandon this challenge? Your streak ends here.")) return;
     updateChallenge(challenge.id, { status: "abandoned" });
     toast("Challenge abandoned.");
-    navigate({ to: "/onboarding" });
+    navigate({ to: "/folded" });
   };
 
   const signOut = () => {
