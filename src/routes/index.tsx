@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import knightHero from "@/assets/knight-hero.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -44,45 +45,65 @@ function Landing() {
 
       {/* Hero */}
       <section className="mx-auto max-w-6xl px-6 pt-20 pb-24">
-        <div className="font-mono text-xs uppercase tracking-[0.3em] text-primary mb-6">
-          [ DAY 00 / 66 — INITIATE ]
-        </div>
-        <h1 className="font-display text-6xl md:text-8xl leading-[0.95] uppercase">
-          Pick one habit.
-          <br />
-          <span className="text-primary">Survive 66 days.</span>
-        </h1>
-        <p className="mt-8 max-w-xl text-lg text-muted-foreground">
-          Only 66 is a brutal little habit tracker. One challenge. One streak.
-          Make it to Day 66 — or fold and start over.
-        </p>
+        <div className="grid gap-12 md:grid-cols-2 md:items-center">
+          <div>
+            <div className="font-mono text-xs uppercase tracking-[0.3em] text-primary mb-6">
+              [ DAY 00 / 66 — INITIATE ]
+            </div>
+            <h1 className="font-display text-6xl md:text-7xl lg:text-8xl leading-[0.95] uppercase">
+              Pick one habit.
+              <br />
+              <span className="text-primary">Survive 66 days.</span>
+            </h1>
+            <p className="mt-8 max-w-xl text-lg text-muted-foreground">
+              Only 66 is a brutal little habit tracker. One challenge. One streak.
+              Make it to Day 66 — or fold and start over.
+            </p>
 
-        <div className="mt-10 flex flex-wrap gap-3">
-          {EXAMPLES.map((ex) => (
-            <span
-              key={ex}
-              className="rounded-sm border border-border bg-surface px-3 py-2 font-mono text-xs uppercase tracking-wider text-muted-foreground"
-            >
-              {ex}
-            </span>
-          ))}
-        </div>
+            <div className="mt-10 flex flex-wrap gap-3">
+              {EXAMPLES.map((ex) => (
+                <span
+                  key={ex}
+                  className="rounded-sm border border-border bg-surface px-3 py-2 font-mono text-xs uppercase tracking-wider text-muted-foreground"
+                >
+                  {ex}
+                </span>
+              ))}
+            </div>
 
-        <div className="mt-12 flex flex-wrap gap-3">
-          <Link
-            to="/login"
-            className="inline-flex items-center justify-center rounded-sm bg-primary px-8 py-4 font-display text-lg uppercase tracking-wider text-primary-foreground hover:opacity-90"
-          >
-            Start your 66
-          </Link>
-          <a
-            href="#how"
-            className="inline-flex items-center justify-center rounded-sm border border-border px-8 py-4 font-display text-lg uppercase tracking-wider hover:bg-surface"
-          >
-            How it works
-          </a>
+            <div className="mt-12 flex flex-wrap gap-3">
+              <Link
+                to="/login"
+                className="inline-flex items-center justify-center rounded-sm bg-primary px-8 py-4 font-display text-lg uppercase tracking-wider text-primary-foreground hover:opacity-90"
+              >
+                Start your 66
+              </Link>
+              <a
+                href="#how"
+                className="inline-flex items-center justify-center rounded-sm border border-border px-8 py-4 font-display text-lg uppercase tracking-wider hover:bg-surface"
+              >
+                How it works
+              </a>
+            </div>
+          </div>
+
+          {/* Knight */}
+          <div className="relative flex items-center justify-center md:justify-end">
+            <div
+              aria-hidden
+              className="absolute inset-0 m-auto h-3/4 w-3/4 rounded-full bg-primary/30 blur-3xl animate-knight-glow"
+            />
+            <img
+              src={knightHero}
+              alt="Red and white knight standing guard over your 66-day streak"
+              width={1024}
+              height={1024}
+              className="relative w-full max-w-[480px] drop-shadow-[0_0_40px_oklch(0.62_0.24_25/0.5)] animate-knight-float"
+            />
+          </div>
         </div>
       </section>
+
 
       {/* How it works */}
       <section id="how" className="border-t border-border bg-surface/40">
