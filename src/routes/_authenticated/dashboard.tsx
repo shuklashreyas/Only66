@@ -266,7 +266,7 @@ function Dashboard() {
   );
 }
 
-function currentStreak(cins: CheckIn[]) {
+function currentStreak(cins: LocalCheckIn[]) {
   const byDay = new Map(cins.map((c) => [c.day_number, c]));
   const maxDay = Math.max(0, ...cins.map((c) => c.day_number));
   let s = 0;
@@ -276,7 +276,7 @@ function currentStreak(cins: CheckIn[]) {
   }
   return s;
 }
-function bestStreak(cins: CheckIn[]) {
+function bestStreak(cins: LocalCheckIn[]) {
   const days = cins.filter((c) => c.completed).map((c) => c.day_number).sort((a, b) => a - b);
   let best = 0, run = 0, prev = -1;
   for (const d of days) {
