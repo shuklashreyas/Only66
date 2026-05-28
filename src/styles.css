@@ -139,6 +139,31 @@
 .animate-knight-float { animation: knight-float 5s ease-in-out infinite; }
 .animate-knight-glow { animation: knight-glow 3.5s ease-in-out infinite; }
 
+/* The 66-Day Wall — perspective survival grid */
+@keyframes wall-glow {
+  0%, 100% { opacity: 0.45; transform: scale(1); }
+  50%      { opacity: 0.75; transform: scale(1.06); }
+}
+.animate-wall-glow { animation: wall-glow 4s ease-in-out infinite; }
+
+.wall-perspective { perspective: 1200px; perspective-origin: 50% 60%; }
+.wall-tilt {
+  transform: rotateX(22deg) rotateY(-14deg) rotateZ(0.5deg);
+  transform-style: preserve-3d;
+}
+
+.wall-scanlines {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 3px,
+    oklch(0.62 0.24 25 / 0.06) 3px,
+    oklch(0.62 0.24 25 / 0.06) 4px
+  );
+  mix-blend-mode: screen;
+}
+
+
 @layer base {
   * {
     border-color: var(--color-border);
