@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TOTAL_DAYS, dayNumber, todayIso } from "@/lib/day-math";
-import { pickReminder, PANIC_LINES, type Tone } from "@/lib/tone";
+import { pickReminder, pickProtocol, PANIC_LINES, MILESTONES, FINAL_DAY, type Tone } from "@/lib/tone";
 import { CheckInModal } from "@/components/dashboard/CheckInModal";
 import { PanicModal } from "@/components/dashboard/PanicModal";
 import { SettingsSheet } from "@/components/dashboard/SettingsSheet";
