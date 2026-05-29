@@ -1,9 +1,10 @@
 import { r as reactExports, j as jsxRuntimeExports } from "../_libs/react.mjs";
 import { u as useNavigate, L as Link } from "../_libs/tanstack__react-router.mjs";
 import { t as toast } from "../_libs/sonner.mjs";
-import { g as getPushReminderState, s as syncReminderChallengeSnapshot, a as syncReminderCheckInSnapshot, e as enableBackgroundPush } from "./push-Boql1Gc_.mjs";
+import { g as getPushReminderState, b as syncReminderChallengeSnapshot, c as syncReminderCheckInSnapshot, e as enableBackgroundPush, s as sendTestPushNotification, a as getReminderPushDebug } from "./push-BRRGwzuM.mjs";
 import { d as dayNumber, t as todayIso, T as TOTAL_DAYS } from "./day-math-OKL4F-bz.mjs";
-import { j as getUserDisplayName, u as updateChallenge, g as getActiveChallengeForUser, e as getCheckInsForChallenge, h as getLocalUser, i as getStoredTheme, T as THEMES, b as createCheckIn, k as setUserDisplayName, s as setStoredTheme, c as clearLocalUser } from "./router-CKEh3UVe.mjs";
+import { M as MILESTONES, F as FINAL_DAY, p as pickProtocol, P as PANIC_LINES, T as TONE_LABELS } from "./tone-_wsTtvwc.mjs";
+import { j as getUserDisplayName, u as updateChallenge, g as getActiveChallengeForUser, e as getCheckInsForChallenge, h as getLocalUser, i as getStoredTheme, T as THEMES, b as createCheckIn, k as setUserDisplayName, s as setStoredTheme, c as clearLocalUser } from "./router-YVwZTNu5.mjs";
 import { isMuted, play, startTick, stopTick, setMuted, playBgm } from "./sound--O_4J7dP.mjs";
 import "../_libs/seroval.mjs";
 import "../_libs/tanstack__router-core.mjs";
@@ -18,7 +19,7 @@ import "crypto";
 import "async_hooks";
 import "stream";
 import "../_libs/isbot.mjs";
-import "./server-BDbOBauc.mjs";
+import "./server-B9Tqv7Ds.mjs";
 import "node:async_hooks";
 import "../_libs/h3-v2.mjs";
 import "../_libs/rou3.mjs";
@@ -27,71 +28,6 @@ import "../_libs/zod.mjs";
 import "../_libs/tanstack__query-core.mjs";
 import "../_libs/tanstack__react-query.mjs";
 import "../_libs/lucide-react.mjs";
-const TONE_LABELS = {
-  strict: "Drill sergeant",
-  brutal: "Brutally honest",
-  chill: "Chill coach",
-  funny: "Goblin mode"
-};
-const PANIC_LINES = {
-  strict: "You're about to throw away {day} days. Sit with that for 60 seconds.",
-  brutal: "{day} days. Gone. For what? Wait 60 seconds.",
-  chill: "Breathe. {day} days are still yours. The urge passes.",
-  funny: "WAIT. {day} DAYS. THE GOBLIN BEGS YOU. 60 SECONDS."
-};
-const PROTOCOLS = {
-  build: {
-    strict: [
-      "Execute {habit} today. No negotiation. No 'tomorrow'.",
-      "{habit}. Done before sundown. That's the order.",
-      "Drop everything else first. {habit} comes before comfort."
-    ],
-    brutal: [
-      "Do {habit}. You already know what skipping today costs you.",
-      "{habit} today, or admit you didn't mean it.",
-      "Every day you skip {habit} is a day you chose comfort over the thing you said mattered."
-    ],
-    chill: [
-      "Today's move: {habit}. Small step, big chain.",
-      "Carve out a moment for {habit}. You'll feel it tomorrow.",
-      "{habit} today. Future you sends thanks."
-    ],
-    funny: [
-      "GOBLIN COMMAND: {habit}. NOW. THE GRID HUNGERS.",
-      "Do {habit} or I haunt your for-you page.",
-      "{habit} today. Or the goblin tells everyone."
-    ]
-  },
-  quit: {
-    strict: [
-      "Do not touch it. {habit} is off the table. Period.",
-      "When the urge hits: count to 10, walk away. {habit} stays dead.",
-      "Today you do not fold. {habit} does not get a vote."
-    ],
-    brutal: [
-      "Every time you go back to {habit}, you bury what you started.",
-      "You said no to {habit}. Mean it for one more day.",
-      "{habit} won't fix anything. It never has. Sit with that."
-    ],
-    chill: [
-      "Urge to {habit}? Let it pass. It always does.",
-      "One more day without {habit}. That's all today asks.",
-      "When {habit} calls, breathe and stamp the grid instead."
-    ],
-    funny: [
-      "TOUCH {habit} AND THE GOBLIN WEEPS. DON'T DO IT.",
-      "{habit} is a trap. Goblin says no. Goblin is right.",
-      "If you fold to {habit} today, the grid tells your mom."
-    ]
-  }
-};
-function pickProtocol(tone, kind, habit, day) {
-  const pool = PROTOCOLS[kind][tone];
-  const idx = (day % pool.length + pool.length) % pool.length;
-  return pool[idx].replaceAll("{habit}", habit || (kind === "build" ? "your habit" : "the urge"));
-}
-const MILESTONES = /* @__PURE__ */ new Set([22, 44, 66]);
-const FINAL_DAY = 66;
 const DAILY_QUOTES = [
   { text: "We must all suffer one of two things: the pain of discipline or the pain of regret or disappointment.", author: "Jim Rohn" },
   { text: "Discipline is the bridge between goals and accomplishment.", author: "Jim Rohn" },
@@ -336,6 +272,15 @@ function PanicModal({
     ] })
   ] }) });
 }
+const NOTIFICATION_STATUS_LABELS = {
+  push_connected: "Push connected",
+  notifications_not_enabled: "Notifications not enabled",
+  permission_denied: "Permission denied",
+  unsupported_browser: "Unsupported browser",
+  subscription_failed: "Subscription failed",
+  reminder_synced: "Reminder synced",
+  reminder_sync_failed: "Reminder sync failed"
+};
 function SettingsSheet({
   challenge,
   onClose,
@@ -348,7 +293,17 @@ function SettingsSheet({
   const [theme, setTheme] = reactExports.useState(getStoredTheme());
   const [pushSupported, setPushSupported] = reactExports.useState(true);
   const [pushEnabled, setPushEnabled] = reactExports.useState(false);
+  const [pushPermission, setPushPermission] = reactExports.useState("default");
+  const [serviceWorkerRegistered, setServiceWorkerRegistered] = reactExports.useState(false);
+  const [subscriptionEndpoint, setSubscriptionEndpoint] = reactExports.useState(null);
+  const [reminderSynced, setReminderSynced] = reactExports.useState(false);
+  const [debugTimezone, setDebugTimezone] = reactExports.useState(Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC");
+  const [lastPushSentDate, setLastPushSentDate] = reactExports.useState(null);
+  const [lastSubscriptionError, setLastSubscriptionError] = reactExports.useState(null);
+  const [notificationStatus, setNotificationStatus] = reactExports.useState("notifications_not_enabled");
+  const [notificationStatusDetail, setNotificationStatusDetail] = reactExports.useState("");
   const [pushBusy, setPushBusy] = reactExports.useState(false);
+  const [testingPush, setTestingPush] = reactExports.useState(false);
   const [saving, setSaving] = reactExports.useState(false);
   const localUser = getLocalUser();
   reactExports.useEffect(() => {
@@ -356,13 +311,63 @@ function SettingsSheet({
     window.addEventListener("keydown", onEsc);
     return () => window.removeEventListener("keydown", onEsc);
   }, [onClose]);
-  reactExports.useEffect(() => {
-    void getPushReminderState().then((state) => {
-      setPushSupported(state.supported);
-      setPushEnabled(state.subscribed);
-    }).catch((error) => {
+  const setStatus = (status, detail = "") => {
+    setNotificationStatus(status);
+    setNotificationStatusDetail(detail);
+  };
+  const applyBrowserState = (state) => {
+    setPushSupported(state.supported);
+    setPushEnabled(state.subscribed);
+    setPushPermission(state.permission);
+    setServiceWorkerRegistered(state.serviceWorkerRegistered);
+    setSubscriptionEndpoint(state.endpoint);
+    if (!state.supported) {
+      setStatus("unsupported_browser", "This browser does not support Push API or service workers.");
+      return;
+    }
+    if (state.permission === "denied") {
+      setStatus("permission_denied", "Browser notification permission is denied.");
+      return;
+    }
+    if (state.subscribed) {
+      setStatus(reminderSynced ? "reminder_synced" : "push_connected");
+      return;
+    }
+    setStatus("notifications_not_enabled", "Enable push reminders to receive notifications after the tab closes.");
+  };
+  const refreshDebugState = async () => {
+    if (!localUser) return;
+    try {
+      const debug = await getReminderPushDebug({
+        data: {
+          localUserId: localUser.id,
+          localChallengeId: challenge.id
+        }
+      });
+      setReminderSynced(debug.reminderSynced);
+      setDebugTimezone(debug.timezone ?? debugTimezone);
+      setLastPushSentDate(debug.lastNotificationSentOn);
+      setLastSubscriptionError(debug.lastSubscriptionError);
+      if (debug.reminderSynced && pushEnabled) {
+        setStatus("reminder_synced", "Reminder mirror is saved in Supabase and ready for cron delivery.");
+      }
+    } catch (error) {
+      console.error("Failed to load reminder debug state", error);
+      setReminderSynced(false);
+    }
+  };
+  const refreshPushState = async () => {
+    try {
+      const state = await getPushReminderState();
+      applyBrowserState(state);
+      await refreshDebugState();
+    } catch (error) {
       console.error("Failed to inspect push state", error);
-    });
+      setStatus("subscription_failed", "Could not inspect the current push subscription.");
+    }
+  };
+  reactExports.useEffect(() => {
+    void refreshPushState();
   }, []);
   const syncChallengeReminderState = async (notificationEnabled, nextTone, nextReminderTime) => {
     if (!localUser) return;
@@ -382,6 +387,7 @@ function SettingsSheet({
         }
       }
     });
+    setReminderSynced(true);
   };
   const save = async () => {
     setSaving(true);
@@ -391,10 +397,12 @@ function SettingsSheet({
       setStoredTheme(theme);
       updateChallenge(challenge.id, { tone, reminder_time: nextReminderTime });
       await syncChallengeReminderState(pushEnabled, tone, nextReminderTime);
+      setStatus("reminder_synced", "Reminder mirror updated in Supabase.");
       toast.success("Saved.");
       onChanged();
       onClose();
     } catch (err) {
+      setStatus("reminder_sync_failed", err.message || "Could not sync reminder state to Supabase.");
       toast.error(err.message || "Save failed");
       setSaving(false);
     }
@@ -407,22 +415,48 @@ function SettingsSheet({
     setPushBusy(true);
     try {
       const state = await enableBackgroundPush(localUser.id);
-      setPushSupported(state.supported);
-      setPushEnabled(state.subscribed);
+      applyBrowserState(state);
       if (!state.supported) {
+        setStatus("unsupported_browser", "Push API and service workers are not supported here.");
         toast.error("Push notifications are not supported in this browser.");
         return;
       }
       if (state.permission !== "granted") {
+        setStatus("permission_denied", "Grant notification permission in your browser settings to use push reminders.");
         toast.error("Notification permission was not granted.");
         return;
       }
       await syncChallengeReminderState(true, tone, reminderTime + ":00");
+      setStatus("reminder_synced", "Push subscription saved and reminder mirror synced.");
       toast.success("Background push reminders enabled.");
     } catch (error) {
+      setStatus("subscription_failed", error.message || "Push subscription could not be created or synced.");
       toast.error(error.message || "Could not enable background push reminders.");
     } finally {
       setPushBusy(false);
+    }
+  };
+  const sendTestNotification = async () => {
+    if (!localUser) {
+      toast.error("No local user found.");
+      return;
+    }
+    setTestingPush(true);
+    try {
+      await sendTestPushNotification({
+        data: {
+          localUserId: localUser.id,
+          localChallengeId: challenge.id
+        }
+      });
+      setStatus("push_connected", "Test push sent through the backend delivery path.");
+      toast.success("Test push sent.");
+      await refreshDebugState();
+    } catch (error) {
+      setStatus("subscription_failed", error.message || "Backend test push failed.");
+      toast.error(error.message || "Could not send test push.");
+    } finally {
+      setTestingPush(false);
     }
   };
   const abandon = () => {
@@ -502,6 +536,11 @@ function SettingsSheet({
         }) })
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "rounded-sm border border-border bg-background px-3 py-3", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground", children: "Notification status" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-2 font-mono text-xs uppercase tracking-widest text-primary", children: NOTIFICATION_STATUS_LABELS[notificationStatus] }),
+          notificationStatusDetail && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-2 text-xs text-muted-foreground", children: notificationStatusDetail })
+        ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsx(
           "button",
           {
@@ -514,6 +553,15 @@ function SettingsSheet({
         /* @__PURE__ */ jsxRuntimeExports.jsx(
           "button",
           {
+            onClick: sendTestNotification,
+            disabled: testingPush || !pushEnabled,
+            className: "w-full rounded-sm border border-border bg-background px-3 py-2 text-sm font-mono uppercase tracking-widest transition hover:bg-surface-2 disabled:opacity-50",
+            children: testingPush ? "Sending test push..." : "Send test notification"
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "button",
+          {
             disabled: true,
             className: "w-full rounded-sm border border-border bg-background px-3 py-2 text-sm font-mono uppercase tracking-widest opacity-40 cursor-not-allowed",
             children: "SMS reminders — coming soon"
@@ -521,6 +569,7 @@ function SettingsSheet({
         ),
         /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs font-mono text-muted-foreground", children: pushSupported ? pushEnabled ? "Service worker + Push API are active for this browser." : "Push reminders work even when the tab is closed once connected." : "This browser does not support background push reminders." })
       ] }),
+      false,
       /* @__PURE__ */ jsxRuntimeExports.jsx(
         "button",
         {

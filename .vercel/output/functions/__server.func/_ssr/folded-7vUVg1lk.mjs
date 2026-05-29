@@ -1,6 +1,7 @@
 import { r as reactExports, j as jsxRuntimeExports } from "../_libs/react.mjs";
 import { u as useNavigate, L as Link } from "../_libs/tanstack__react-router.mjs";
-import { g as getActiveChallengeForUser, u as updateChallenge } from "./router-CKEh3UVe.mjs";
+import { f as getLatestAbandonedChallenge } from "./router-YVwZTNu5.mjs";
+import { play } from "./sound--O_4J7dP.mjs";
 import "../_libs/sonner.mjs";
 import "../_libs/tanstack__router-core.mjs";
 import "../_libs/tanstack__history.mjs";
@@ -18,44 +19,41 @@ import "../_libs/isbot.mjs";
 import "../_libs/tanstack__query-core.mjs";
 import "../_libs/tanstack__react-query.mjs";
 import "../_libs/lucide-react.mjs";
-function WinPage() {
+function FoldedPage() {
   const navigate = useNavigate();
   const [name, setName] = reactExports.useState("the habit");
   reactExports.useEffect(() => {
-    const challenge = getActiveChallengeForUser();
-    if (challenge) setName(challenge.name);
-  }, []);
-  const handleNew = () => {
-    const challenge = getActiveChallengeForUser();
-    if (challenge) {
-      updateChallenge(challenge.id, {
-        status: "completed"
+    const challenge = getLatestAbandonedChallenge();
+    if (!challenge) {
+      navigate({
+        to: "/onboarding"
       });
+      return;
     }
-    navigate({
-      to: "/onboarding"
-    });
-  };
+    setName(challenge.name);
+    play("gameover");
+  }, [navigate]);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "min-h-screen bg-background flex flex-col", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("header", { className: "border-b border-border", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(Link, { to: "/", className: "mx-auto max-w-3xl px-6 py-4 font-display text-2xl block", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-primary", children: "ONLY" }),
       " 66"
     ] }) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex-1 flex items-center justify-center px-6 py-16", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "max-w-xl text-center animate-survived-pop", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "font-mono text-xs uppercase tracking-[0.3em] text-[color:var(--color-reward)] mb-4", children: "[ DAY 66 / 66 — SURVIVED ]" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "font-display text-7xl uppercase", children: "You won." }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex-1 flex items-center justify-center px-6 py-16", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "max-w-xl text-center", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "font-mono text-xs uppercase tracking-[0.3em] text-primary mb-4", children: "[ STREAK BROKEN ]" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "font-display text-7xl uppercase", children: "You folded." }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "mt-6 text-lg text-muted-foreground", children: [
-        "66 days of ",
         /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-foreground font-semibold", children: name }),
-        ". The habit is yours."
+        " beat you this round. The grid remembers. Start over if you want another shot at 66."
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-10 flex flex-wrap gap-3 justify-center", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: handleNew, className: "rounded-sm bg-primary px-6 py-3 font-display uppercase tracking-wider text-primary-foreground", children: "Start another 66" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => navigate({
+          to: "/onboarding"
+        }), className: "rounded-sm bg-primary px-6 py-3 font-display uppercase tracking-wider text-primary-foreground", children: "Start again" }),
         /* @__PURE__ */ jsxRuntimeExports.jsx(Link, { to: "/", className: "rounded-sm border border-border px-6 py-3 font-display uppercase tracking-wider", children: "Home" })
       ] })
     ] }) })
   ] });
 }
 export {
-  WinPage as component
+  FoldedPage as component
 };

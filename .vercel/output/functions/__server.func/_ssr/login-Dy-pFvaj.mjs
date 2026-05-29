@@ -1,6 +1,6 @@
 import { r as reactExports, j as jsxRuntimeExports } from "../_libs/react.mjs";
 import { u as useNavigate, L as Link } from "../_libs/tanstack__react-router.mjs";
-import { d as createLocalUser } from "./router-CKEh3UVe.mjs";
+import { d as createLocalUser } from "./router-YVwZTNu5.mjs";
 import { t as toast } from "../_libs/sonner.mjs";
 import "../_libs/tanstack__router-core.mjs";
 import "../_libs/tanstack__history.mjs";

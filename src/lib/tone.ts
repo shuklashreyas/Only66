@@ -41,10 +41,39 @@ const REMINDERS: Record<Tone, string[]> = {
   ],
 };
 
+const PUSH_REMINDERS: Record<Tone, string[]> = {
+  strict: [
+    "Day {day}/66. Check in now. No excuses.",
+    "Day {day}/66. Protect the streak before the clock beats you.",
+    "You set the rule. Day {day}/66 still needs your stamp.",
+  ],
+  brutal: [
+    "Day {day}/66. You still have not checked in. Fix it.",
+    "If Day {day}/66 dies tonight, that is on you.",
+    "The streak does not care why you are late. Day {day}/66 is still open.",
+  ],
+  chill: [
+    "Day {day}/66 is still waiting for you. One quick check-in.",
+    "You're close. Mark Day {day}/66 and keep the run alive.",
+    "Small action, strong streak. Day {day}/66 just needs your check-in.",
+  ],
+  funny: [
+    "Day {day}/66. Tiny goblin alert: the streak is hungry.",
+    "CHECK IN FOR DAY {day}/66 OR THE GOBLIN FILES A COMPLAINT.",
+    "Day {day}/66 remains unstamped. The goblin disapproves loudly.",
+  ],
+};
+
 export function pickReminder(tone: Tone, day: number) {
   const pool = REMINDERS[tone];
   const msg = pool[Math.floor(Math.random() * pool.length)];
   return msg.replace("{day}", String(day));
+}
+
+export function pickPushReminder(tone: Tone, day: number) {
+  const pool = PUSH_REMINDERS[tone];
+  const idx = ((day - 1) % pool.length + pool.length) % pool.length;
+  return pool[idx].replace("{day}", String(day));
 }
 
 export const PANIC_LINES: Record<Tone, string> = {

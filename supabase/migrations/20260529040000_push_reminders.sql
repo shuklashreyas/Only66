@@ -48,13 +48,31 @@ CREATE TABLE public.push_subscriptions (
 CREATE INDEX push_subscriptions_user_idx
   ON public.push_subscriptions (local_user_id, active);
 
+CREATE TABLE public.notification_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  local_user_id TEXT NOT NULL,
+  local_challenge_id TEXT NOT NULL REFERENCES public.reminder_challenges(local_challenge_id) ON DELETE CASCADE,
+  date DATE NOT NULL,
+  kind TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending',
+  sent_at TIMESTAMPTZ,
+  message TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (local_challenge_id, date, kind)
+);
+
+CREATE INDEX notification_logs_lookup_idx
+  ON public.notification_logs (local_user_id, date, kind);
+
 GRANT ALL ON public.reminder_challenges TO service_role;
 GRANT ALL ON public.reminder_check_ins TO service_role;
 GRANT ALL ON public.push_subscriptions TO service_role;
+GRANT ALL ON public.notification_logs TO service_role;
 
 ALTER TABLE public.reminder_challenges ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reminder_check_ins ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.push_subscriptions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.notification_logs ENABLE ROW LEVEL SECURITY;
 
 CREATE TRIGGER reminder_challenges_updated_at
   BEFORE UPDATE ON public.reminder_challenges

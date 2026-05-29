@@ -1,11 +1,30 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { syncReminderChallengeSnapshot } from "@/lib/api/push.functions";
-import { enableBackgroundPush, getPushReminderState } from "@/lib/push";
+import { getReminderPushDebug, sendTestPushNotification, syncReminderChallengeSnapshot } from "@/lib/api/push.functions";
+import { enableBackgroundPush, getPushReminderState, type PushReminderState } from "@/lib/push";
 import { THEMES, getStoredTheme, setStoredTheme, type AppTheme } from "@/lib/theme";
 import { TONE_LABELS, type Tone } from "@/lib/tone";
 import { updateChallenge, clearLocalUser, getLocalUser, getUserDisplayName, setUserDisplayName, type LocalChallenge } from "@/lib/storage";
+
+type NotificationStatusKey =
+  | "push_connected"
+  | "notifications_not_enabled"
+  | "permission_denied"
+  | "unsupported_browser"
+  | "subscription_failed"
+  | "reminder_synced"
+  | "reminder_sync_failed";
+
+const NOTIFICATION_STATUS_LABELS: Record<NotificationStatusKey, string> = {
+  push_connected: "Push connected",
+  notifications_not_enabled: "Notifications not enabled",
+  permission_denied: "Permission denied",
+  unsupported_browser: "Unsupported browser",
+  subscription_failed: "Subscription failed",
+  reminder_synced: "Reminder synced",
+  reminder_sync_failed: "Reminder sync failed",
+};
 
 export function SettingsSheet({
   challenge,
@@ -23,7 +42,17 @@ export function SettingsSheet({
   const [theme, setTheme] = useState<AppTheme>(getStoredTheme());
   const [pushSupported, setPushSupported] = useState(true);
   const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushPermission, setPushPermission] = useState<NotificationPermission | "unsupported">("default");
+  const [serviceWorkerRegistered, setServiceWorkerRegistered] = useState(false);
+  const [subscriptionEndpoint, setSubscriptionEndpoint] = useState<string | null>(null);
+  const [reminderSynced, setReminderSynced] = useState(false);
+  const [debugTimezone, setDebugTimezone] = useState<string>(Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC");
+  const [lastPushSentDate, setLastPushSentDate] = useState<string | null>(null);
+  const [lastSubscriptionError, setLastSubscriptionError] = useState<string | null>(null);
+  const [notificationStatus, setNotificationStatus] = useState<NotificationStatusKey>("notifications_not_enabled");
+  const [notificationStatusDetail, setNotificationStatusDetail] = useState<string>("");
   const [pushBusy, setPushBusy] = useState(false);
+  const [testingPush, setTestingPush] = useState(false);
   const [saving, setSaving] = useState(false);
   const localUser = getLocalUser();
 
@@ -33,15 +62,71 @@ export function SettingsSheet({
     return () => window.removeEventListener("keydown", onEsc);
   }, [onClose]);
 
-  useEffect(() => {
-    void getPushReminderState()
-      .then((state) => {
-        setPushSupported(state.supported);
-        setPushEnabled(state.subscribed);
-      })
-      .catch((error) => {
-        console.error("Failed to inspect push state", error);
+  const setStatus = (status: NotificationStatusKey, detail = "") => {
+    setNotificationStatus(status);
+    setNotificationStatusDetail(detail);
+  };
+
+  const applyBrowserState = (state: PushReminderState) => {
+    setPushSupported(state.supported);
+    setPushEnabled(state.subscribed);
+    setPushPermission(state.permission);
+    setServiceWorkerRegistered(state.serviceWorkerRegistered);
+    setSubscriptionEndpoint(state.endpoint);
+
+    if (!state.supported) {
+      setStatus("unsupported_browser", "This browser does not support Push API or service workers.");
+      return;
+    }
+    if (state.permission === "denied") {
+      setStatus("permission_denied", "Browser notification permission is denied.");
+      return;
+    }
+    if (state.subscribed) {
+      setStatus(reminderSynced ? "reminder_synced" : "push_connected");
+      return;
+    }
+    setStatus("notifications_not_enabled", "Enable push reminders to receive notifications after the tab closes.");
+  };
+
+  const refreshDebugState = async () => {
+    if (!localUser) return;
+
+    try {
+      const debug = await getReminderPushDebug({
+        data: {
+          localUserId: localUser.id,
+          localChallengeId: challenge.id,
+        },
       });
+
+      setReminderSynced(debug.reminderSynced);
+      setDebugTimezone(debug.timezone ?? debugTimezone);
+      setLastPushSentDate(debug.lastNotificationSentOn);
+      setLastSubscriptionError(debug.lastSubscriptionError);
+
+      if (debug.reminderSynced && pushEnabled) {
+        setStatus("reminder_synced", "Reminder mirror is saved in Supabase and ready for cron delivery.");
+      }
+    } catch (error) {
+      console.error("Failed to load reminder debug state", error);
+      setReminderSynced(false);
+    }
+  };
+
+  const refreshPushState = async () => {
+    try {
+      const state = await getPushReminderState();
+      applyBrowserState(state);
+      await refreshDebugState();
+    } catch (error) {
+      console.error("Failed to inspect push state", error);
+      setStatus("subscription_failed", "Could not inspect the current push subscription.");
+    }
+  };
+
+  useEffect(() => {
+    void refreshPushState();
   }, []);
 
   const syncChallengeReminderState = async (notificationEnabled: boolean, nextTone: Tone, nextReminderTime: string) => {
@@ -63,6 +148,8 @@ export function SettingsSheet({
         },
       },
     });
+
+    setReminderSynced(true);
   };
 
   const save = async () => {
@@ -73,10 +160,12 @@ export function SettingsSheet({
       setStoredTheme(theme);
       updateChallenge(challenge.id, { tone, reminder_time: nextReminderTime });
       await syncChallengeReminderState(pushEnabled, tone, nextReminderTime);
+      setStatus("reminder_synced", "Reminder mirror updated in Supabase.");
       toast.success("Saved.");
       onChanged();
       onClose();
     } catch (err: any) {
+      setStatus("reminder_sync_failed", err.message || "Could not sync reminder state to Supabase.");
       toast.error(err.message || "Save failed");
       setSaving(false);
     }
@@ -91,25 +180,53 @@ export function SettingsSheet({
     setPushBusy(true);
     try {
       const state = await enableBackgroundPush(localUser.id);
-      setPushSupported(state.supported);
-      setPushEnabled(state.subscribed);
+      applyBrowserState(state);
 
       if (!state.supported) {
+        setStatus("unsupported_browser", "Push API and service workers are not supported here.");
         toast.error("Push notifications are not supported in this browser.");
         return;
       }
 
       if (state.permission !== "granted") {
+        setStatus("permission_denied", "Grant notification permission in your browser settings to use push reminders.");
         toast.error("Notification permission was not granted.");
         return;
       }
 
       await syncChallengeReminderState(true, tone, reminderTime + ":00");
+      setStatus("reminder_synced", "Push subscription saved and reminder mirror synced.");
       toast.success("Background push reminders enabled.");
     } catch (error: any) {
+      setStatus("subscription_failed", error.message || "Push subscription could not be created or synced.");
       toast.error(error.message || "Could not enable background push reminders.");
     } finally {
       setPushBusy(false);
+    }
+  };
+
+  const sendTestNotification = async () => {
+    if (!localUser) {
+      toast.error("No local user found.");
+      return;
+    }
+
+    setTestingPush(true);
+    try {
+      await sendTestPushNotification({
+        data: {
+          localUserId: localUser.id,
+          localChallengeId: challenge.id,
+        },
+      });
+      setStatus("push_connected", "Test push sent through the backend delivery path.");
+      toast.success("Test push sent.");
+      await refreshDebugState();
+    } catch (error: any) {
+      setStatus("subscription_failed", error.message || "Backend test push failed.");
+      toast.error(error.message || "Could not send test push.");
+    } finally {
+      setTestingPush(false);
     }
   };
 
@@ -123,13 +240,6 @@ export function SettingsSheet({
   const signOut = () => {
     clearLocalUser();
     navigate({ to: "/" });
-  };
-
-  const requestNotifs = async () => {
-    if (typeof Notification === "undefined") return toast.error("Not supported");
-    const res = await Notification.requestPermission();
-    if (res === "granted") toast.success("Notifications on.");
-    else toast.error("Permission denied.");
   };
 
   return (
@@ -209,6 +319,15 @@ export function SettingsSheet({
           </div>
 
           <div className="space-y-2">
+            <div className="rounded-sm border border-border bg-background px-3 py-3">
+              <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Notification status</div>
+              <div className="mt-2 font-mono text-xs uppercase tracking-widest text-primary">
+                {NOTIFICATION_STATUS_LABELS[notificationStatus]}
+              </div>
+              {notificationStatusDetail && (
+                <p className="mt-2 text-xs text-muted-foreground">{notificationStatusDetail}</p>
+              )}
+            </div>
             <button
               onClick={enablePushReminders}
               disabled={pushBusy || !pushSupported}
@@ -221,6 +340,13 @@ export function SettingsSheet({
                 : pushEnabled
                 ? "Background push connected"
                 : "Enable background push reminders"}
+            </button>
+            <button
+              onClick={sendTestNotification}
+              disabled={testingPush || !pushEnabled}
+              className="w-full rounded-sm border border-border bg-background px-3 py-2 text-sm font-mono uppercase tracking-widest transition hover:bg-surface-2 disabled:opacity-50"
+            >
+              {testingPush ? "Sending test push..." : "Send test notification"}
             </button>
             <button
               disabled
@@ -236,6 +362,22 @@ export function SettingsSheet({
                 : "This browser does not support background push reminders."}
             </p>
           </div>
+
+          {import.meta.env.DEV && (
+            <div className="rounded-sm border border-border bg-background p-4 space-y-2">
+              <div className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Push debug</div>
+              <div className="grid gap-1 text-xs font-mono text-muted-foreground">
+                <div>Notification permission: <span className="text-foreground">{pushPermission}</span></div>
+                <div>Service worker registered: <span className="text-foreground">{serviceWorkerRegistered ? "yes" : "no"}</span></div>
+                <div>Push subscription exists: <span className="text-foreground">{subscriptionEndpoint ? "yes" : "no"}</span></div>
+                <div>Reminder synced to Supabase: <span className="text-foreground">{reminderSynced ? "yes" : "no"}</span></div>
+                <div>Reminder time: <span className="text-foreground">{reminderTime}</span></div>
+                <div>Timezone: <span className="text-foreground">{debugTimezone}</span></div>
+                <div>Last push sent date: <span className="text-foreground">{lastPushSentDate ?? "none"}</span></div>
+                <div>Last subscription error: <span className="text-foreground">{lastSubscriptionError ?? "none"}</span></div>
+              </div>
+            </div>
+          )}
 
           <button
             onClick={save}

@@ -1,4 +1,4 @@
-import { a as createServerFn, T as TSS_SERVER_FUNCTION, g as getServerFnById } from "./server-BDbOBauc.mjs";
+import { a as createServerFn, T as TSS_SERVER_FUNCTION, g as getServerFnById } from "./server-B9Tqv7Ds.mjs";
 import { o as objectType, b as booleanType, s as stringType, e as enumType, n as numberType } from "../_libs/zod.mjs";
 var createSsrRpc = (functionId) => {
   const url = "/_serverFn/" + functionId;
@@ -52,32 +52,48 @@ createServerFn({
 }).inputValidator(objectType({
   endpoint: stringType().url()
 })).handler(createSsrRpc("8cc0a4bfeae3921788ea62f5bc6395db5a6d6fee7cee6147c35c7160c437825d"));
+const getReminderPushDebug = createServerFn({
+  method: "GET"
+}).inputValidator(objectType({
+  localUserId: stringType().min(1),
+  localChallengeId: stringType().min(1)
+})).handler(createSsrRpc("e978113d61120d73cbe24d4d0398da4d7f48470e845fdf20d99e576ce6f2b165"));
+const sendTestPushNotification = createServerFn({
+  method: "POST"
+}).inputValidator(objectType({
+  localUserId: stringType().min(1),
+  localChallengeId: stringType().min(1)
+})).handler(createSsrRpc("3fa5bcd3d530726704e0ace9547f789a9d3d31693741c655f739e997464257db"));
 async function getServiceWorkerRegistration() {
   return navigator.serviceWorker.register("/push-sw.js");
 }
 async function getPushReminderState() {
   if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
-    return { supported: false, permission: "unsupported", subscribed: false };
+    return { supported: false, permission: "unsupported", subscribed: false, serviceWorkerRegistered: false, endpoint: null };
   }
   const registration = await getServiceWorkerRegistration();
   const subscription = await registration.pushManager.getSubscription();
   return {
     supported: true,
     permission: Notification.permission,
-    subscribed: Boolean(subscription)
+    subscribed: Boolean(subscription),
+    serviceWorkerRegistered: true,
+    endpoint: subscription?.endpoint ?? null
   };
 }
 async function enableBackgroundPush(localUserId) {
   if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
-    return { supported: false, permission: "unsupported", subscribed: false };
+    return { supported: false, permission: "unsupported", subscribed: false, serviceWorkerRegistered: false, endpoint: null };
   }
   {
     throw new Error("Missing VITE_VAPID_PUBLIC_KEY.");
   }
 }
 export {
-  syncReminderCheckInSnapshot as a,
+  getReminderPushDebug as a,
+  syncReminderChallengeSnapshot as b,
+  syncReminderCheckInSnapshot as c,
   enableBackgroundPush as e,
   getPushReminderState as g,
-  syncReminderChallengeSnapshot as s
+  sendTestPushNotification as s
 };

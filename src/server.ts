@@ -43,6 +43,11 @@ export default {
       const url = new URL(request.url);
       if (request.method === "GET" && url.pathname === "/api/push/cron") {
         const cronSecret = process.env.CRON_SECRET;
+        if (!cronSecret) {
+          const { logMissingCronSecretWarning } = await import("./lib/push.server");
+          logMissingCronSecretWarning();
+        }
+
         if (cronSecret && request.headers.get("authorization") !== `Bearer ${cronSecret}`) {
           return new Response("Unauthorized", { status: 401 });
         }

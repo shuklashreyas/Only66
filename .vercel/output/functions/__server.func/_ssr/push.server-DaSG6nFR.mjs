@@ -1,6 +1,7 @@
 import { w as webpush } from "../_libs/web-push.mjs";
 import { c as createClient } from "../_libs/supabase__supabase-js.mjs";
 import { T as TOTAL_DAYS } from "./day-math-OKL4F-bz.mjs";
+import { T as TONE_LABELS, a as pickPushReminder } from "./tone-_wsTtvwc.mjs";
 import "url";
 import "../_libs/react.mjs";
 import "crypto";
@@ -67,6 +68,7 @@ const supabaseAdmin = new Proxy({}, {
   }
 });
 let vapidConfigured = false;
+let cronSecretWarningLogged = false;
 function ensureWebPushConfigured() {
   if (vapidConfigured) return;
   const publicKey = process.env.VITE_VAPID_PUBLIC_KEY;
@@ -164,20 +166,28 @@ async function markNotificationSent(localChallengeId, date) {
   const { error } = await supabaseAdmin.from("reminder_challenges").update({ last_notification_sent_on: date }).eq("local_challenge_id", localChallengeId);
   if (error) throw error;
 }
-async function sendChallengePush(challenge, subscriptions, localDate) {
-  ensureWebPushConfigured();
-  const dayNumber = dayNumberForLocalDate(challenge.start_date, localDate);
-  if (dayNumber < 1 || dayNumber > TOTAL_DAYS) {
-    return { sent: 0, deactivated: 0, dayNumber };
+async function reserveNotificationLog(localUserId, localChallengeId, date, kind) {
+  const { data, error } = await supabaseAdmin.from("notification_logs").insert({
+    local_user_id: localUserId,
+    local_challenge_id: localChallengeId,
+    date,
+    kind,
+    status: "pending"
+  }).select("id").maybeSingle();
+  if (error) {
+    if (error.code === "23505") return null;
+    throw error;
   }
+  return data?.id ?? null;
+}
+async function updateNotificationLog(id, updates) {
+  const { error } = await supabaseAdmin.from("notification_logs").update(updates).eq("id", id);
+  if (error) throw error;
+}
+async function sendPushPayload(subscriptions, payload) {
+  ensureWebPushConfigured();
   let sent = 0;
   let deactivated = 0;
-  const payload = JSON.stringify({
-    title: "Only66",
-    body: `Day ${dayNumber}/66. You still have not checked in. Protect the streak.`,
-    url: "/dashboard",
-    tag: `only66-reminder-${challenge.local_challenge_id}-${localDate}`
-  });
   for (const subscription of subscriptions) {
     try {
       await webpush.sendNotification(
@@ -202,10 +212,86 @@ async function sendChallengePush(challenge, subscriptions, localDate) {
       deactivated += 1;
     }
   }
+  return { sent, deactivated };
+}
+async function sendChallengePush(challenge, subscriptions, localDate) {
+  const dayNumber = dayNumberForLocalDate(challenge.start_date, localDate);
+  if (dayNumber < 1 || dayNumber > TOTAL_DAYS) {
+    return { sent: 0, deactivated: 0, dayNumber };
+  }
+  const logId = await reserveNotificationLog(challenge.local_user_id, challenge.local_challenge_id, localDate, "daily-reminder");
+  if (!logId) {
+    return { sent: 0, deactivated: 0, dayNumber, duplicateSuppressed: true };
+  }
+  const payload = JSON.stringify({
+    title: "Only66",
+    body: pickPushReminder(challenge.tone, dayNumber),
+    url: "/dashboard",
+    tag: `only66-reminder-${challenge.local_challenge_id}-${localDate}`
+  });
+  const { sent, deactivated } = await sendPushPayload(subscriptions, payload);
   if (sent > 0) {
     await markNotificationSent(challenge.local_challenge_id, localDate);
+    await updateNotificationLog(logId, {
+      status: "sent",
+      sent_at: (/* @__PURE__ */ new Date()).toISOString(),
+      message: payload
+    });
+  } else {
+    await updateNotificationLog(logId, {
+      status: "failed",
+      message: "No push notifications were delivered."
+    });
   }
-  return { sent, deactivated, dayNumber };
+  return { sent, deactivated, dayNumber, duplicateSuppressed: false };
+}
+async function getReminderDebugStatus(localUserId, localChallengeId) {
+  const [{ data: challenge, error: challengeError }, { data: subscriptions, error: subscriptionsError }] = await Promise.all([
+    supabaseAdmin.from("reminder_challenges").select("local_challenge_id, notification_enabled, reminder_time, timezone, last_notification_sent_on, status").eq("local_user_id", localUserId).eq("local_challenge_id", localChallengeId).maybeSingle(),
+    supabaseAdmin.from("push_subscriptions").select("endpoint, active, last_error").eq("local_user_id", localUserId)
+  ]);
+  if (challengeError) throw challengeError;
+  if (subscriptionsError) throw subscriptionsError;
+  const activeSubscriptions = (subscriptions ?? []).filter((subscription) => subscription.active);
+  const lastErroredSubscription = [...subscriptions ?? []].reverse().find((subscription) => subscription.last_error);
+  return {
+    reminderSynced: Boolean(challenge),
+    reminderTime: challenge?.reminder_time ?? null,
+    timezone: challenge?.timezone ?? null,
+    notificationEnabled: challenge?.notification_enabled ?? false,
+    lastNotificationSentOn: challenge?.last_notification_sent_on ?? null,
+    status: challenge?.status ?? null,
+    activeSubscriptionCount: activeSubscriptions.length,
+    lastSubscriptionError: lastErroredSubscription?.last_error ?? null
+  };
+}
+async function sendTestPush(localUserId, localChallengeId) {
+  const { data: challenge, error } = await supabaseAdmin.from("reminder_challenges").select("*").eq("local_user_id", localUserId).eq("local_challenge_id", localChallengeId).maybeSingle();
+  if (error) throw error;
+  if (!challenge) {
+    throw new Error("Reminder mirror not found. Save settings or enable push first.");
+  }
+  const subscriptions = await loadSubscriptions(localUserId);
+  if (subscriptions.length === 0) {
+    throw new Error("No active push subscription found.");
+  }
+  const dayNumber = dayNumberForLocalDate(challenge.start_date, getLocalDateTime(challenge.timezone, /* @__PURE__ */ new Date()).date);
+  const payload = JSON.stringify({
+    title: "Only66",
+    body: `[TEST] ${TONE_LABELS[challenge.tone]} push live for Day ${Math.max(1, dayNumber)}/66.`,
+    url: "/dashboard",
+    tag: `only66-test-${challenge.local_challenge_id}`
+  });
+  const result = await sendPushPayload(subscriptions, payload);
+  if (result.sent === 0) {
+    throw new Error("Push send failed. Check subscription and VAPID configuration.");
+  }
+  return result;
+}
+function logMissingCronSecretWarning() {
+  if (cronSecretWarningLogged) return;
+  cronSecretWarningLogged = true;
+  console.warn("[push] CRON_SECRET is not set. /api/push/cron is accessible without shared-secret auth.");
 }
 async function runReminderSweep(now = /* @__PURE__ */ new Date()) {
   const { data, error } = await supabaseAdmin.from("reminder_challenges").select("*").eq("status", "active").eq("notification_enabled", true);
@@ -238,6 +324,10 @@ async function runReminderSweep(now = /* @__PURE__ */ new Date()) {
       continue;
     }
     const result = await sendChallengePush(challenge, subscriptions, localNow.date);
+    if (result.duplicateSuppressed) {
+      skippedAlreadySent += 1;
+      continue;
+    }
     sent += result.sent;
     deactivated += result.deactivated;
   }
@@ -254,7 +344,10 @@ async function runReminderSweep(now = /* @__PURE__ */ new Date()) {
 }
 export {
   deactivatePushSubscription,
+  getReminderDebugStatus,
+  logMissingCronSecretWarning,
   runReminderSweep,
+  sendTestPush,
   upsertPushSubscriptionSnapshot,
   upsertReminderChallengeSnapshot,
   upsertReminderCheckInSnapshot

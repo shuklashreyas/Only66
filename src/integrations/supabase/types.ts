@@ -159,6 +159,50 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_logs: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          kind: string
+          local_challenge_id: string
+          local_user_id: string
+          message: string | null
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          kind: string
+          local_challenge_id: string
+          local_user_id: string
+          message?: string | null
+          sent_at?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          kind?: string
+          local_challenge_id?: string
+          local_user_id?: string
+          message?: string | null
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_logs_local_challenge_id_fkey"
+            columns: ["local_challenge_id"]
+            isOneToOne: false
+            referencedRelation: "reminder_challenges"
+            referencedColumns: ["local_challenge_id"]
+          },
+        ]
+      }
       push_subscriptions: {
         Row: {
           active: boolean

@@ -4,6 +4,8 @@ export type PushReminderState = {
   supported: boolean;
   permission: NotificationPermission | "unsupported";
   subscribed: boolean;
+  serviceWorkerRegistered: boolean;
+  endpoint: string | null;
 };
 
 function urlBase64ToUint8Array(base64String: string) {
@@ -19,7 +21,7 @@ async function getServiceWorkerRegistration() {
 
 export async function getPushReminderState(): Promise<PushReminderState> {
   if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
-    return { supported: false, permission: "unsupported", subscribed: false };
+    return { supported: false, permission: "unsupported", subscribed: false, serviceWorkerRegistered: false, endpoint: null };
   }
 
   const registration = await getServiceWorkerRegistration();
@@ -29,12 +31,14 @@ export async function getPushReminderState(): Promise<PushReminderState> {
     supported: true,
     permission: Notification.permission,
     subscribed: Boolean(subscription),
+    serviceWorkerRegistered: true,
+    endpoint: subscription?.endpoint ?? null,
   };
 }
 
 export async function enableBackgroundPush(localUserId: string): Promise<PushReminderState> {
   if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
-    return { supported: false, permission: "unsupported", subscribed: false };
+    return { supported: false, permission: "unsupported", subscribed: false, serviceWorkerRegistered: false, endpoint: null };
   }
 
   const publicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
@@ -50,7 +54,7 @@ export async function enableBackgroundPush(localUserId: string): Promise<PushRem
   }
 
   if (permission !== "granted") {
-    return { supported: true, permission, subscribed: false };
+    return { supported: true, permission, subscribed: false, serviceWorkerRegistered: true, endpoint: null };
   }
 
   let subscription = await registration.pushManager.getSubscription();
@@ -75,12 +79,12 @@ export async function enableBackgroundPush(localUserId: string): Promise<PushRem
     },
   });
 
-  return { supported: true, permission, subscribed: true };
+  return { supported: true, permission, subscribed: true, serviceWorkerRegistered: true, endpoint: json.endpoint };
 }
 
 export async function disableBackgroundPush(): Promise<PushReminderState> {
   if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
-    return { supported: false, permission: "unsupported", subscribed: false };
+    return { supported: false, permission: "unsupported", subscribed: false, serviceWorkerRegistered: false, endpoint: null };
   }
 
   const registration = await getServiceWorkerRegistration();
@@ -95,5 +99,7 @@ export async function disableBackgroundPush(): Promise<PushReminderState> {
     supported: true,
     permission: Notification.permission,
     subscribed: false,
+    serviceWorkerRegistered: true,
+    endpoint: null,
   };
 }

@@ -69,3 +69,27 @@ export const deactivatePushSubscriptionByEndpoint = createServerFn({ method: "PO
     await deactivatePushSubscription(data.endpoint);
     return { ok: true };
   });
+
+export const getReminderPushDebug = createServerFn({ method: "GET" })
+  .inputValidator(
+    z.object({
+      localUserId: z.string().min(1),
+      localChallengeId: z.string().min(1),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const { getReminderDebugStatus } = await import("@/lib/push.server");
+    return getReminderDebugStatus(data.localUserId, data.localChallengeId);
+  });
+
+export const sendTestPushNotification = createServerFn({ method: "POST" })
+  .inputValidator(
+    z.object({
+      localUserId: z.string().min(1),
+      localChallengeId: z.string().min(1),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const { sendTestPush } = await import("@/lib/push.server");
+    return sendTestPush(data.localUserId, data.localChallengeId);
+  });
