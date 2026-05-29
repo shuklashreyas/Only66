@@ -49,7 +49,10 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
-            onClick={() => { router.invalidate(); reset(); }}
+            onClick={() => {
+              router.invalidate();
+              reset();
+            }}
             className="inline-flex items-center justify-center rounded-sm bg-primary px-4 py-2 text-sm font-display uppercase tracking-wider text-primary-foreground"
           >
             Retry
@@ -72,7 +75,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Only 66 — Survive 66 days. Build the habit." },
-      { name: "description", content: "Pick one habit. Survive 66 days. Protect your streak or lose it all." },
+      {
+        name: "description",
+        content: "Pick one habit. Survive 66 days. Protect your streak or lose it all.",
+      },
       { property: "og:title", content: "Only 66" },
       { property: "og:description", content: "Pick one habit. Survive 66 days." },
       { property: "og:type", content: "website" },
@@ -181,4 +187,3 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
-

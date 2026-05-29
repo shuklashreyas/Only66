@@ -1,4 +1,4 @@
-import { a as createServerFn, T as TSS_SERVER_FUNCTION, g as getServerFnById } from "./server-B9Tqv7Ds.mjs";
+import { a as createServerFn, T as TSS_SERVER_FUNCTION, g as getServerFnById } from "./server-C_rLdiRg.mjs";
 import { o as objectType, b as booleanType, s as stringType, e as enumType, n as numberType } from "../_libs/zod.mjs";
 var createSsrRpc = (functionId) => {
   const url = "/_serverFn/" + functionId;
@@ -69,7 +69,13 @@ async function getServiceWorkerRegistration() {
 }
 async function getPushReminderState() {
   if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
-    return { supported: false, permission: "unsupported", subscribed: false, serviceWorkerRegistered: false, endpoint: null };
+    return {
+      supported: false,
+      permission: "unsupported",
+      subscribed: false,
+      serviceWorkerRegistered: false,
+      endpoint: null
+    };
   }
   const registration = await getServiceWorkerRegistration();
   const subscription = await registration.pushManager.getSubscription();
@@ -83,7 +89,13 @@ async function getPushReminderState() {
 }
 async function enableBackgroundPush(localUserId) {
   if (typeof window === "undefined" || !("serviceWorker" in navigator) || !("PushManager" in window)) {
-    return { supported: false, permission: "unsupported", subscribed: false, serviceWorkerRegistered: false, endpoint: null };
+    return {
+      supported: false,
+      permission: "unsupported",
+      subscribed: false,
+      serviceWorkerRegistered: false,
+      endpoint: null
+    };
   }
   {
     throw new Error("Missing VITE_VAPID_PUBLIC_KEY.");

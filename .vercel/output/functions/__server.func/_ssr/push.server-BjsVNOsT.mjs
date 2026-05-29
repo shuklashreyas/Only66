@@ -69,6 +69,9 @@ const supabaseAdmin = new Proxy({}, {
 });
 let vapidConfigured = false;
 let cronSecretWarningLogged = false;
+function getErrorMessage(error) {
+  return error instanceof Error ? error.message : String(error);
+}
 function ensureWebPushConfigured() {
   if (vapidConfigured) return;
   const publicKey = process.env.VITE_VAPID_PUBLIC_KEY;
@@ -202,13 +205,13 @@ async function sendPushPayload(subscriptions, payload) {
       );
       sent += 1;
     } catch (error) {
-      const statusCode = error?.statusCode;
+      const statusCode = typeof error === "object" && error !== null && "statusCode" in error ? error.statusCode : void 0;
       if (statusCode === 404 || statusCode === 410) {
         await deactivatePushSubscription(subscription.endpoint, `${statusCode}`);
         deactivated += 1;
         continue;
       }
-      await deactivatePushSubscription(subscription.endpoint, error?.message ?? "push send failed");
+      await deactivatePushSubscription(subscription.endpoint, getErrorMessage(error));
       deactivated += 1;
     }
   }
@@ -219,7 +222,12 @@ async function sendChallengePush(challenge, subscriptions, localDate) {
   if (dayNumber < 1 || dayNumber > TOTAL_DAYS) {
     return { sent: 0, deactivated: 0, dayNumber };
   }
-  const logId = await reserveNotificationLog(challenge.local_user_id, challenge.local_challenge_id, localDate, "daily-reminder");
+  const logId = await reserveNotificationLog(
+    challenge.local_user_id,
+    challenge.local_challenge_id,
+    localDate,
+    "daily-reminder"
+  );
   if (!logId) {
     return { sent: 0, deactivated: 0, dayNumber, duplicateSuppressed: true };
   }
@@ -246,8 +254,13 @@ async function sendChallengePush(challenge, subscriptions, localDate) {
   return { sent, deactivated, dayNumber, duplicateSuppressed: false };
 }
 async function getReminderDebugStatus(localUserId, localChallengeId) {
-  const [{ data: challenge, error: challengeError }, { data: subscriptions, error: subscriptionsError }] = await Promise.all([
-    supabaseAdmin.from("reminder_challenges").select("local_challenge_id, notification_enabled, reminder_time, timezone, last_notification_sent_on, status").eq("local_user_id", localUserId).eq("local_challenge_id", localChallengeId).maybeSingle(),
+  const [
+    { data: challenge, error: challengeError },
+    { data: subscriptions, error: subscriptionsError }
+  ] = await Promise.all([
+    supabaseAdmin.from("reminder_challenges").select(
+      "local_challenge_id, notification_enabled, reminder_time, timezone, last_notification_sent_on, status"
+    ).eq("local_user_id", localUserId).eq("local_challenge_id", localChallengeId).maybeSingle(),
     supabaseAdmin.from("push_subscriptions").select("endpoint, active, last_error").eq("local_user_id", localUserId)
   ]);
   if (challengeError) throw challengeError;
@@ -275,7 +288,10 @@ async function sendTestPush(localUserId, localChallengeId) {
   if (subscriptions.length === 0) {
     throw new Error("No active push subscription found.");
   }
-  const dayNumber = dayNumberForLocalDate(challenge.start_date, getLocalDateTime(challenge.timezone, /* @__PURE__ */ new Date()).date);
+  const dayNumber = dayNumberForLocalDate(
+    challenge.start_date,
+    getLocalDateTime(challenge.timezone, /* @__PURE__ */ new Date()).date
+  );
   const payload = JSON.stringify({
     title: "Only66",
     body: `[TEST] ${TONE_LABELS[challenge.tone]} push live for Day ${Math.max(1, dayNumber)}/66.`,
@@ -291,7 +307,9 @@ async function sendTestPush(localUserId, localChallengeId) {
 function logMissingCronSecretWarning() {
   if (cronSecretWarningLogged) return;
   cronSecretWarningLogged = true;
-  console.warn("[push] CRON_SECRET is not set. /api/push/cron is accessible without shared-secret auth.");
+  console.warn(
+    "[push] CRON_SECRET is not set. /api/push/cron is accessible without shared-secret auth."
+  );
 }
 async function runReminderSweep(now = /* @__PURE__ */ new Date()) {
   const { data, error } = await supabaseAdmin.from("reminder_challenges").select("*").eq("status", "active").eq("notification_enabled", true);

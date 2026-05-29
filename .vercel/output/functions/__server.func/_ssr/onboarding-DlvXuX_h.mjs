@@ -1,9 +1,9 @@
 import { r as reactExports, j as jsxRuntimeExports } from "../_libs/react.mjs";
 import { u as useNavigate, L as Link } from "../_libs/tanstack__react-router.mjs";
 import { t as toast } from "../_libs/sonner.mjs";
-import { e as enableBackgroundPush, b as syncReminderChallengeSnapshot } from "./push-BRRGwzuM.mjs";
+import { e as enableBackgroundPush, b as syncReminderChallengeSnapshot } from "./push-B-zExgfy.mjs";
 import { t as todayIso } from "./day-math-OKL4F-bz.mjs";
-import { j as getUserDisplayName, k as setUserDisplayName, a as createChallenge, h as getLocalUser } from "./router-YVwZTNu5.mjs";
+import { j as getUserDisplayName, k as setUserDisplayName, a as createChallenge, h as getLocalUser } from "./router-BnWGtkIF.mjs";
 import "../_libs/seroval.mjs";
 import "../_libs/tanstack__router-core.mjs";
 import "../_libs/tanstack__history.mjs";
@@ -17,7 +17,7 @@ import "crypto";
 import "async_hooks";
 import "stream";
 import "../_libs/isbot.mjs";
-import "./server-B9Tqv7Ds.mjs";
+import "./server-C_rLdiRg.mjs";
 import "node:async_hooks";
 import "../_libs/h3-v2.mjs";
 import "../_libs/rou3.mjs";
@@ -86,8 +86,8 @@ function Onboarding() {
         replace: true
       });
       setSubmitting(false);
-    } catch (err) {
-      toast.error(err.message || "Could not start challenge");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not start challenge");
       setSubmitting(false);
     }
   };

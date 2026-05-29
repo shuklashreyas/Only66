@@ -42,6 +42,10 @@ type PushSubscriptionSnapshot = {
 let vapidConfigured = false;
 let cronSecretWarningLogged = false;
 
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : String(error);
+}
+
 function ensureWebPushConfigured() {
   if (vapidConfigured) return;
 
@@ -178,7 +182,12 @@ async function markNotificationSent(localChallengeId: string, date: string) {
   if (error) throw error;
 }
 
-async function reserveNotificationLog(localUserId: string, localChallengeId: string, date: string, kind: string) {
+async function reserveNotificationLog(
+  localUserId: string,
+  localChallengeId: string,
+  date: string,
+  kind: string,
+) {
   // The unique constraint on (challenge, date, kind) is our cross-cron dedupe lock.
   const { data, error } = await supabaseAdmin
     .from("notification_logs")
@@ -201,18 +210,12 @@ async function reserveNotificationLog(localUserId: string, localChallengeId: str
 }
 
 async function updateNotificationLog(id: string, updates: Partial<NotificationLogRow>) {
-  const { error } = await supabaseAdmin
-    .from("notification_logs")
-    .update(updates)
-    .eq("id", id);
+  const { error } = await supabaseAdmin.from("notification_logs").update(updates).eq("id", id);
 
   if (error) throw error;
 }
 
-async function sendPushPayload(
-  subscriptions: PushSubscriptionRow[],
-  payload: string,
-) {
+async function sendPushPayload(subscriptions: PushSubscriptionRow[], payload: string) {
   ensureWebPushConfigured();
 
   let sent = 0;
@@ -231,15 +234,19 @@ async function sendPushPayload(
         payload,
       );
       sent += 1;
-    } catch (error: any) {
-      const statusCode = error?.statusCode;
+    } catch (error) {
+      const statusCode =
+        typeof error === "object" && error !== null && "statusCode" in error
+          ? error.statusCode
+          : undefined;
+
       if (statusCode === 404 || statusCode === 410) {
         await deactivatePushSubscription(subscription.endpoint, `${statusCode}`);
         deactivated += 1;
         continue;
       }
 
-      await deactivatePushSubscription(subscription.endpoint, error?.message ?? "push send failed");
+      await deactivatePushSubscription(subscription.endpoint, getErrorMessage(error));
       deactivated += 1;
     }
   }
@@ -247,13 +254,22 @@ async function sendPushPayload(
   return { sent, deactivated };
 }
 
-async function sendChallengePush(challenge: ReminderChallengeRow, subscriptions: PushSubscriptionRow[], localDate: string) {
+async function sendChallengePush(
+  challenge: ReminderChallengeRow,
+  subscriptions: PushSubscriptionRow[],
+  localDate: string,
+) {
   const dayNumber = dayNumberForLocalDate(challenge.start_date, localDate);
   if (dayNumber < 1 || dayNumber > TOTAL_DAYS) {
     return { sent: 0, deactivated: 0, dayNumber };
   }
 
-  const logId = await reserveNotificationLog(challenge.local_user_id, challenge.local_challenge_id, localDate, "daily-reminder");
+  const logId = await reserveNotificationLog(
+    challenge.local_user_id,
+    challenge.local_challenge_id,
+    localDate,
+    "daily-reminder",
+  );
   if (!logId) {
     return { sent: 0, deactivated: 0, dayNumber, duplicateSuppressed: true };
   }
@@ -285,10 +301,15 @@ async function sendChallengePush(challenge: ReminderChallengeRow, subscriptions:
 }
 
 export async function getReminderDebugStatus(localUserId: string, localChallengeId: string) {
-  const [{ data: challenge, error: challengeError }, { data: subscriptions, error: subscriptionsError }] = await Promise.all([
+  const [
+    { data: challenge, error: challengeError },
+    { data: subscriptions, error: subscriptionsError },
+  ] = await Promise.all([
     supabaseAdmin
       .from("reminder_challenges")
-      .select("local_challenge_id, notification_enabled, reminder_time, timezone, last_notification_sent_on, status")
+      .select(
+        "local_challenge_id, notification_enabled, reminder_time, timezone, last_notification_sent_on, status",
+      )
       .eq("local_user_id", localUserId)
       .eq("local_challenge_id", localChallengeId)
       .maybeSingle(),
@@ -302,7 +323,9 @@ export async function getReminderDebugStatus(localUserId: string, localChallenge
   if (subscriptionsError) throw subscriptionsError;
 
   const activeSubscriptions = (subscriptions ?? []).filter((subscription) => subscription.active);
-  const lastErroredSubscription = [...(subscriptions ?? [])].reverse().find((subscription) => subscription.last_error);
+  const lastErroredSubscription = [...(subscriptions ?? [])]
+    .reverse()
+    .find((subscription) => subscription.last_error);
 
   return {
     reminderSynced: Boolean(challenge),
@@ -334,7 +357,10 @@ export async function sendTestPush(localUserId: string, localChallengeId: string
     throw new Error("No active push subscription found.");
   }
 
-  const dayNumber = dayNumberForLocalDate(challenge.start_date, getLocalDateTime(challenge.timezone, new Date()).date);
+  const dayNumber = dayNumberForLocalDate(
+    challenge.start_date,
+    getLocalDateTime(challenge.timezone, new Date()).date,
+  );
   const payload = JSON.stringify({
     title: "Only66",
     body: `[TEST] ${TONE_LABELS[challenge.tone]} push live for Day ${Math.max(1, dayNumber)}/66.`,
@@ -353,7 +379,9 @@ export async function sendTestPush(localUserId: string, localChallengeId: string
 export function logMissingCronSecretWarning() {
   if (cronSecretWarningLogged) return;
   cronSecretWarningLogged = true;
-  console.warn("[push] CRON_SECRET is not set. /api/push/cron is accessible without shared-secret auth.");
+  console.warn(
+    "[push] CRON_SECRET is not set. /api/push/cron is accessible without shared-secret auth.",
+  );
 }
 
 export async function runReminderSweep(now = new Date()) {

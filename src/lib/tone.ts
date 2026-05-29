@@ -72,7 +72,7 @@ export function pickReminder(tone: Tone, day: number) {
 
 export function pickPushReminder(tone: Tone, day: number) {
   const pool = PUSH_REMINDERS[tone];
-  const idx = ((day - 1) % pool.length + pool.length) % pool.length;
+  const idx = (((day - 1) % pool.length) + pool.length) % pool.length;
   return pool[idx].replace("{day}", String(day));
 }
 
@@ -130,12 +130,7 @@ const PROTOCOLS: Record<"build" | "quit", Record<Tone, string[]>> = {
   },
 };
 
-export function pickProtocol(
-  tone: Tone,
-  kind: "build" | "quit",
-  habit: string,
-  day: number,
-) {
+export function pickProtocol(tone: Tone, kind: "build" | "quit", habit: string, day: number) {
   const pool = PROTOCOLS[kind][tone];
   // Stable per-day pick
   const idx = ((day % pool.length) + pool.length) % pool.length;

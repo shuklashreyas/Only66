@@ -4,7 +4,13 @@ import { toast } from "sonner";
 import { syncReminderChallengeSnapshot } from "@/lib/api/push.functions";
 import { todayIso } from "@/lib/day-math";
 import { enableBackgroundPush } from "@/lib/push";
-import { createChallenge, getActiveChallengeForUser, getLocalUser, getUserDisplayName, setUserDisplayName } from "@/lib/storage";
+import {
+  createChallenge,
+  getActiveChallengeForUser,
+  getLocalUser,
+  getUserDisplayName,
+  setUserDisplayName,
+} from "@/lib/storage";
 import type { Tone } from "@/lib/tone";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
@@ -83,8 +89,8 @@ function Onboarding() {
       toast.success("Challenge started!");
       navigate({ to: "/dashboard", replace: true });
       setSubmitting(false);
-    } catch (err: any) {
-      toast.error(err.message || "Could not start challenge");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not start challenge");
       setSubmitting(false);
     }
   };
@@ -111,12 +117,18 @@ function Onboarding() {
                   key={k}
                   onClick={() => setKind(k)}
                   className={`rounded-sm border p-6 text-left transition ${
-                    kind === k ? "border-primary bg-primary/10" : "border-border bg-surface hover:bg-surface-2"
+                    kind === k
+                      ? "border-primary bg-primary/10"
+                      : "border-border bg-surface hover:bg-surface-2"
                   }`}
                 >
-                  <div className="font-display text-2xl uppercase">{k === "build" ? "Build it" : "Quit it"}</div>
+                  <div className="font-display text-2xl uppercase">
+                    {k === "build" ? "Build it" : "Quit it"}
+                  </div>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    {k === "build" ? "Do this thing every day for 66 days." : "Don't do this thing for 66 days."}
+                    {k === "build"
+                      ? "Do this thing every day for 66 days."
+                      : "Don't do this thing for 66 days."}
                   </p>
                 </button>
               ))}
@@ -137,7 +149,9 @@ function Onboarding() {
               autoFocus
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder={kind === "build" ? "e.g. Workout 20 min" : "e.g. No scrolling after 10pm"}
+              placeholder={
+                kind === "build" ? "e.g. Workout 20 min" : "e.g. No scrolling after 10pm"
+              }
               className="w-full rounded-sm border border-border bg-surface px-4 py-3 font-mono"
               maxLength={80}
             />
@@ -150,7 +164,12 @@ function Onboarding() {
               className="w-full rounded-sm border border-border bg-surface px-4 py-3 font-mono text-sm"
             />
             <div className="flex gap-3">
-              <button onClick={() => setStep(1)} className="rounded-sm border border-border px-6 py-3 font-display uppercase tracking-wider">Back</button>
+              <button
+                onClick={() => setStep(1)}
+                className="rounded-sm border border-border px-6 py-3 font-display uppercase tracking-wider"
+              >
+                Back
+              </button>
               <button
                 disabled={!name.trim()}
                 onClick={() => setStep(3)}
@@ -167,17 +186,21 @@ function Onboarding() {
             <h1 className="font-display text-4xl uppercase">Pick your tone</h1>
             <p className="text-muted-foreground text-sm">How should we talk to you?</p>
             <div className="grid gap-3">
-              {([
-                ["strict", "Drill sergeant", "No excuses. No softness."],
-                ["brutal", "Brutal honest", "Cold truth. You signed up for this."],
-                ["chill", "Chill coach", "Warm and rooting for you."],
-                ["funny", "Goblin mode", "Unhinged. Possibly threatening."],
-              ] as const).map(([val, label, desc]) => (
+              {(
+                [
+                  ["strict", "Drill sergeant", "No excuses. No softness."],
+                  ["brutal", "Brutal honest", "Cold truth. You signed up for this."],
+                  ["chill", "Chill coach", "Warm and rooting for you."],
+                  ["funny", "Goblin mode", "Unhinged. Possibly threatening."],
+                ] as const
+              ).map(([val, label, desc]) => (
                 <button
                   key={val}
                   onClick={() => setTone(val)}
                   className={`rounded-sm border p-4 text-left transition ${
-                    tone === val ? "border-primary bg-primary/10" : "border-border bg-surface hover:bg-surface-2"
+                    tone === val
+                      ? "border-primary bg-primary/10"
+                      : "border-border bg-surface hover:bg-surface-2"
                   }`}
                 >
                   <div className="font-display text-xl uppercase">{label}</div>
@@ -186,8 +209,18 @@ function Onboarding() {
               ))}
             </div>
             <div className="flex gap-3">
-              <button onClick={() => setStep(2)} className="rounded-sm border border-border px-6 py-3 font-display uppercase tracking-wider">Back</button>
-              <button onClick={() => setStep(4)} className="rounded-sm bg-primary px-6 py-3 font-display uppercase tracking-wider text-primary-foreground">Next</button>
+              <button
+                onClick={() => setStep(2)}
+                className="rounded-sm border border-border px-6 py-3 font-display uppercase tracking-wider"
+              >
+                Back
+              </button>
+              <button
+                onClick={() => setStep(4)}
+                className="rounded-sm bg-primary px-6 py-3 font-display uppercase tracking-wider text-primary-foreground"
+              >
+                Next
+              </button>
             </div>
           </div>
         )}
@@ -221,14 +254,29 @@ function Onboarding() {
               className="rounded-sm border border-border bg-surface px-4 py-3 font-mono text-lg"
             />
             <div className="rounded-sm border border-border bg-surface p-4 text-sm">
-              <div className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-2">[ CONFIRM ]</div>
-              <div><span className="text-muted-foreground">Habit:</span> {name}</div>
-              <div><span className="text-muted-foreground">Kind:</span> {kind}</div>
-              <div><span className="text-muted-foreground">Tone:</span> {tone}</div>
-              <div><span className="text-muted-foreground">Reminder:</span> {reminderTime}</div>
+              <div className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-2">
+                [ CONFIRM ]
+              </div>
+              <div>
+                <span className="text-muted-foreground">Habit:</span> {name}
+              </div>
+              <div>
+                <span className="text-muted-foreground">Kind:</span> {kind}
+              </div>
+              <div>
+                <span className="text-muted-foreground">Tone:</span> {tone}
+              </div>
+              <div>
+                <span className="text-muted-foreground">Reminder:</span> {reminderTime}
+              </div>
             </div>
             <div className="flex gap-3">
-              <button onClick={() => setStep(3)} className="rounded-sm border border-border px-6 py-3 font-display uppercase tracking-wider">Back</button>
+              <button
+                onClick={() => setStep(3)}
+                className="rounded-sm border border-border px-6 py-3 font-display uppercase tracking-wider"
+              >
+                Back
+              </button>
               <button
                 disabled={submitting}
                 onClick={handleStart}

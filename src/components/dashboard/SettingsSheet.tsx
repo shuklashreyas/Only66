@@ -1,11 +1,22 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { getReminderPushDebug, sendTestPushNotification, syncReminderChallengeSnapshot } from "@/lib/api/push.functions";
+import {
+  getReminderPushDebug,
+  sendTestPushNotification,
+  syncReminderChallengeSnapshot,
+} from "@/lib/api/push.functions";
 import { enableBackgroundPush, getPushReminderState, type PushReminderState } from "@/lib/push";
 import { THEMES, getStoredTheme, setStoredTheme, type AppTheme } from "@/lib/theme";
 import { TONE_LABELS, type Tone } from "@/lib/tone";
-import { updateChallenge, clearLocalUser, getLocalUser, getUserDisplayName, setUserDisplayName, type LocalChallenge } from "@/lib/storage";
+import {
+  updateChallenge,
+  clearLocalUser,
+  getLocalUser,
+  getUserDisplayName,
+  setUserDisplayName,
+  type LocalChallenge,
+} from "@/lib/storage";
 
 type NotificationStatusKey =
   | "push_connected"
@@ -26,6 +37,10 @@ const NOTIFICATION_STATUS_LABELS: Record<NotificationStatusKey, string> = {
   reminder_sync_failed: "Reminder sync failed",
 };
 
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
+
 export function SettingsSheet({
   challenge,
   onClose,
@@ -42,14 +57,20 @@ export function SettingsSheet({
   const [theme, setTheme] = useState<AppTheme>(getStoredTheme());
   const [pushSupported, setPushSupported] = useState(true);
   const [pushEnabled, setPushEnabled] = useState(false);
-  const [pushPermission, setPushPermission] = useState<NotificationPermission | "unsupported">("default");
+  const [pushPermission, setPushPermission] = useState<NotificationPermission | "unsupported">(
+    "default",
+  );
   const [serviceWorkerRegistered, setServiceWorkerRegistered] = useState(false);
   const [subscriptionEndpoint, setSubscriptionEndpoint] = useState<string | null>(null);
   const [reminderSynced, setReminderSynced] = useState(false);
-  const [debugTimezone, setDebugTimezone] = useState<string>(Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC");
+  const [debugTimezone, setDebugTimezone] = useState<string>(
+    Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+  );
   const [lastPushSentDate, setLastPushSentDate] = useState<string | null>(null);
   const [lastSubscriptionError, setLastSubscriptionError] = useState<string | null>(null);
-  const [notificationStatus, setNotificationStatus] = useState<NotificationStatusKey>("notifications_not_enabled");
+  const [notificationStatus, setNotificationStatus] = useState<NotificationStatusKey>(
+    "notifications_not_enabled",
+  );
   const [notificationStatusDetail, setNotificationStatusDetail] = useState<string>("");
   const [pushBusy, setPushBusy] = useState(false);
   const [testingPush, setTestingPush] = useState(false);
@@ -62,34 +83,43 @@ export function SettingsSheet({
     return () => window.removeEventListener("keydown", onEsc);
   }, [onClose]);
 
-  const setStatus = (status: NotificationStatusKey, detail = "") => {
+  const setStatus = useCallback((status: NotificationStatusKey, detail = "") => {
     setNotificationStatus(status);
     setNotificationStatusDetail(detail);
-  };
+  }, []);
 
-  const applyBrowserState = (state: PushReminderState) => {
-    setPushSupported(state.supported);
-    setPushEnabled(state.subscribed);
-    setPushPermission(state.permission);
-    setServiceWorkerRegistered(state.serviceWorkerRegistered);
-    setSubscriptionEndpoint(state.endpoint);
+  const applyBrowserState = useCallback(
+    (state: PushReminderState) => {
+      setPushSupported(state.supported);
+      setPushEnabled(state.subscribed);
+      setPushPermission(state.permission);
+      setServiceWorkerRegistered(state.serviceWorkerRegistered);
+      setSubscriptionEndpoint(state.endpoint);
 
-    if (!state.supported) {
-      setStatus("unsupported_browser", "This browser does not support Push API or service workers.");
-      return;
-    }
-    if (state.permission === "denied") {
-      setStatus("permission_denied", "Browser notification permission is denied.");
-      return;
-    }
-    if (state.subscribed) {
-      setStatus(reminderSynced ? "reminder_synced" : "push_connected");
-      return;
-    }
-    setStatus("notifications_not_enabled", "Enable push reminders to receive notifications after the tab closes.");
-  };
+      if (!state.supported) {
+        setStatus(
+          "unsupported_browser",
+          "This browser does not support Push API or service workers.",
+        );
+        return;
+      }
+      if (state.permission === "denied") {
+        setStatus("permission_denied", "Browser notification permission is denied.");
+        return;
+      }
+      if (state.subscribed) {
+        setStatus(reminderSynced ? "reminder_synced" : "push_connected");
+        return;
+      }
+      setStatus(
+        "notifications_not_enabled",
+        "Enable push reminders to receive notifications after the tab closes.",
+      );
+    },
+    [reminderSynced, setStatus],
+  );
 
-  const refreshDebugState = async () => {
+  const refreshDebugState = useCallback(async () => {
     if (!localUser) return;
 
     try {
@@ -106,15 +136,18 @@ export function SettingsSheet({
       setLastSubscriptionError(debug.lastSubscriptionError);
 
       if (debug.reminderSynced && pushEnabled) {
-        setStatus("reminder_synced", "Reminder mirror is saved in Supabase and ready for cron delivery.");
+        setStatus(
+          "reminder_synced",
+          "Reminder mirror is saved in Supabase and ready for cron delivery.",
+        );
       }
     } catch (error) {
       console.error("Failed to load reminder debug state", error);
       setReminderSynced(false);
     }
-  };
+  }, [challenge.id, debugTimezone, localUser, pushEnabled, setStatus]);
 
-  const refreshPushState = async () => {
+  const refreshPushState = useCallback(async () => {
     try {
       const state = await getPushReminderState();
       applyBrowserState(state);
@@ -123,13 +156,17 @@ export function SettingsSheet({
       console.error("Failed to inspect push state", error);
       setStatus("subscription_failed", "Could not inspect the current push subscription.");
     }
-  };
+  }, [applyBrowserState, refreshDebugState, setStatus]);
 
   useEffect(() => {
     void refreshPushState();
-  }, []);
+  }, [refreshPushState]);
 
-  const syncChallengeReminderState = async (notificationEnabled: boolean, nextTone: Tone, nextReminderTime: string) => {
+  const syncChallengeReminderState = async (
+    notificationEnabled: boolean,
+    nextTone: Tone,
+    nextReminderTime: string,
+  ) => {
     if (!localUser) return;
 
     await syncReminderChallengeSnapshot({
@@ -164,9 +201,12 @@ export function SettingsSheet({
       toast.success("Saved.");
       onChanged();
       onClose();
-    } catch (err: any) {
-      setStatus("reminder_sync_failed", err.message || "Could not sync reminder state to Supabase.");
-      toast.error(err.message || "Save failed");
+    } catch (error) {
+      setStatus(
+        "reminder_sync_failed",
+        getErrorMessage(error, "Could not sync reminder state to Supabase."),
+      );
+      toast.error(getErrorMessage(error, "Save failed"));
       setSaving(false);
     }
   };
@@ -189,7 +229,10 @@ export function SettingsSheet({
       }
 
       if (state.permission !== "granted") {
-        setStatus("permission_denied", "Grant notification permission in your browser settings to use push reminders.");
+        setStatus(
+          "permission_denied",
+          "Grant notification permission in your browser settings to use push reminders.",
+        );
         toast.error("Notification permission was not granted.");
         return;
       }
@@ -197,9 +240,12 @@ export function SettingsSheet({
       await syncChallengeReminderState(true, tone, reminderTime + ":00");
       setStatus("reminder_synced", "Push subscription saved and reminder mirror synced.");
       toast.success("Background push reminders enabled.");
-    } catch (error: any) {
-      setStatus("subscription_failed", error.message || "Push subscription could not be created or synced.");
-      toast.error(error.message || "Could not enable background push reminders.");
+    } catch (error) {
+      setStatus(
+        "subscription_failed",
+        getErrorMessage(error, "Push subscription could not be created or synced."),
+      );
+      toast.error(getErrorMessage(error, "Could not enable background push reminders."));
     } finally {
       setPushBusy(false);
     }
@@ -222,9 +268,9 @@ export function SettingsSheet({
       setStatus("push_connected", "Test push sent through the backend delivery path.");
       toast.success("Test push sent.");
       await refreshDebugState();
-    } catch (error: any) {
-      setStatus("subscription_failed", error.message || "Backend test push failed.");
-      toast.error(error.message || "Could not send test push.");
+    } catch (error) {
+      setStatus("subscription_failed", getErrorMessage(error, "Backend test push failed."));
+      toast.error(getErrorMessage(error, "Could not send test push."));
     } finally {
       setTestingPush(false);
     }
@@ -247,17 +293,26 @@ export function SettingsSheet({
       <div className="h-full w-full max-w-md bg-surface border-l border-border overflow-y-auto animate-slide-up">
         <div className="p-6 border-b border-border flex items-center justify-between">
           <h2 className="font-display text-2xl uppercase">Settings</h2>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground font-mono text-xs uppercase">Close</button>
+          <button
+            onClick={onClose}
+            className="text-muted-foreground hover:text-foreground font-mono text-xs uppercase"
+          >
+            Close
+          </button>
         </div>
 
         <div className="p-6 space-y-6">
           <div>
-            <div className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-2">Challenge</div>
+            <div className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-2">
+              Challenge
+            </div>
             <div className="font-display text-xl">{challenge.name}</div>
           </div>
 
           <div>
-            <div className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-2">Tone</div>
+            <div className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-2">
+              Tone
+            </div>
             <div className="grid gap-2">
               {(Object.keys(TONE_LABELS) as Tone[]).map((t) => (
                 <button
@@ -274,7 +329,9 @@ export function SettingsSheet({
           </div>
 
           <div>
-            <div className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-2">Reminder time</div>
+            <div className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-2">
+              Reminder time
+            </div>
             <input
               type="time"
               value={reminderTime}
@@ -284,7 +341,9 @@ export function SettingsSheet({
           </div>
 
           <div>
-            <div className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-2">Display name</div>
+            <div className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-2">
+              Display name
+            </div>
             <input
               type="text"
               value={displayName}
@@ -296,7 +355,9 @@ export function SettingsSheet({
           </div>
 
           <div>
-            <div className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-2">THEME</div>
+            <div className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-2">
+              THEME
+            </div>
             <div className="grid gap-2">
               {THEMES.map((themeOption) => {
                 const selected = themeOption.id === theme;
@@ -310,8 +371,12 @@ export function SettingsSheet({
                         : "border-border hover:bg-surface-2"
                     }`}
                   >
-                    <div className="font-mono text-xs uppercase tracking-widest text-foreground">{themeOption.name}</div>
-                    <div className="mt-1 text-xs text-muted-foreground">{themeOption.description}</div>
+                    <div className="font-mono text-xs uppercase tracking-widest text-foreground">
+                      {themeOption.name}
+                    </div>
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      {themeOption.description}
+                    </div>
                   </button>
                 );
               })}
@@ -320,7 +385,9 @@ export function SettingsSheet({
 
           <div className="space-y-2">
             <div className="rounded-sm border border-border bg-background px-3 py-3">
-              <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Notification status</div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                Notification status
+              </div>
               <div className="mt-2 font-mono text-xs uppercase tracking-widest text-primary">
                 {NOTIFICATION_STATUS_LABELS[notificationStatus]}
               </div>
@@ -332,14 +399,16 @@ export function SettingsSheet({
               onClick={enablePushReminders}
               disabled={pushBusy || !pushSupported}
               className={`w-full rounded-sm border bg-background px-3 py-2 text-sm font-mono uppercase tracking-widest transition disabled:opacity-50 ${
-                pushEnabled ? "border-primary text-primary shadow-[0_0_14px_color-mix(in_srgb,var(--primary)_35%,transparent)]" : "border-border hover:bg-surface-2"
+                pushEnabled
+                  ? "border-primary text-primary shadow-[0_0_14px_color-mix(in_srgb,var(--primary)_35%,transparent)]"
+                  : "border-border hover:bg-surface-2"
               }`}
             >
               {pushBusy
                 ? "Connecting push..."
                 : pushEnabled
-                ? "Background push connected"
-                : "Enable background push reminders"}
+                  ? "Background push connected"
+                  : "Enable background push reminders"}
             </button>
             <button
               onClick={sendTestNotification}
@@ -365,16 +434,39 @@ export function SettingsSheet({
 
           {import.meta.env.DEV && (
             <div className="rounded-sm border border-border bg-background p-4 space-y-2">
-              <div className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Push debug</div>
+              <div className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+                Push debug
+              </div>
               <div className="grid gap-1 text-xs font-mono text-muted-foreground">
-                <div>Notification permission: <span className="text-foreground">{pushPermission}</span></div>
-                <div>Service worker registered: <span className="text-foreground">{serviceWorkerRegistered ? "yes" : "no"}</span></div>
-                <div>Push subscription exists: <span className="text-foreground">{subscriptionEndpoint ? "yes" : "no"}</span></div>
-                <div>Reminder synced to Supabase: <span className="text-foreground">{reminderSynced ? "yes" : "no"}</span></div>
-                <div>Reminder time: <span className="text-foreground">{reminderTime}</span></div>
-                <div>Timezone: <span className="text-foreground">{debugTimezone}</span></div>
-                <div>Last push sent date: <span className="text-foreground">{lastPushSentDate ?? "none"}</span></div>
-                <div>Last subscription error: <span className="text-foreground">{lastSubscriptionError ?? "none"}</span></div>
+                <div>
+                  Notification permission: <span className="text-foreground">{pushPermission}</span>
+                </div>
+                <div>
+                  Service worker registered:{" "}
+                  <span className="text-foreground">{serviceWorkerRegistered ? "yes" : "no"}</span>
+                </div>
+                <div>
+                  Push subscription exists:{" "}
+                  <span className="text-foreground">{subscriptionEndpoint ? "yes" : "no"}</span>
+                </div>
+                <div>
+                  Reminder synced to Supabase:{" "}
+                  <span className="text-foreground">{reminderSynced ? "yes" : "no"}</span>
+                </div>
+                <div>
+                  Reminder time: <span className="text-foreground">{reminderTime}</span>
+                </div>
+                <div>
+                  Timezone: <span className="text-foreground">{debugTimezone}</span>
+                </div>
+                <div>
+                  Last push sent date:{" "}
+                  <span className="text-foreground">{lastPushSentDate ?? "none"}</span>
+                </div>
+                <div>
+                  Last subscription error:{" "}
+                  <span className="text-foreground">{lastSubscriptionError ?? "none"}</span>
+                </div>
               </div>
             </div>
           )}

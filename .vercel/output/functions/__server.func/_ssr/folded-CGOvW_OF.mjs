@@ -1,6 +1,6 @@
 import { r as reactExports, j as jsxRuntimeExports } from "../_libs/react.mjs";
 import { u as useNavigate, L as Link } from "../_libs/tanstack__react-router.mjs";
-import { f as getLatestAbandonedChallenge } from "./router-YVwZTNu5.mjs";
+import { f as getLatestAbandonedChallenge } from "./router-BnWGtkIF.mjs";
 import { play } from "./sound--O_4J7dP.mjs";
 import "../_libs/sonner.mjs";
 import "../_libs/tanstack__router-core.mjs";

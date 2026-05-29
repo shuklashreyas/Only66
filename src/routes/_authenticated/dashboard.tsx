@@ -1,12 +1,20 @@
 import { createFileRoute, redirect, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { syncReminderChallengeSnapshot } from "@/lib/api/push.functions";
 import { TOTAL_DAYS, dayNumber, todayIso } from "@/lib/day-math";
 import { pickProtocol, PANIC_LINES, MILESTONES, FINAL_DAY, type Tone } from "@/lib/tone";
 import { getPushReminderState } from "@/lib/push";
 import { pickDailyQuote } from "@/lib/quotes";
-import { getActiveChallengeForUser, getCheckInsForChallenge, getLocalUser, getUserDisplayName, updateChallenge, type LocalChallenge, type LocalCheckIn } from "@/lib/storage";
+import {
+  getActiveChallengeForUser,
+  getCheckInsForChallenge,
+  getLocalUser,
+  getUserDisplayName,
+  updateChallenge,
+  type LocalChallenge,
+  type LocalCheckIn,
+} from "@/lib/storage";
 import { CheckInModal } from "@/components/dashboard/CheckInModal";
 import { PanicModal } from "@/components/dashboard/PanicModal";
 import { SettingsSheet } from "@/components/dashboard/SettingsSheet";
@@ -40,7 +48,10 @@ function Dashboard() {
   const hasInitializedRef = useRef(false);
   const prevTodayDoneRef = useRef(false);
 
-  const syncChallengeReminderState = async (nextChallenge: LocalChallenge, notificationEnabled?: boolean) => {
+  const syncChallengeReminderState = async (
+    nextChallenge: LocalChallenge,
+    notificationEnabled?: boolean,
+  ) => {
     const localUser = getLocalUser();
     if (!localUser) return;
 
@@ -63,14 +74,17 @@ function Dashboard() {
     });
   };
 
-  const load = () => {
+  const reloadDashboard = useCallback(() => {
     const ch = getActiveChallengeForUser();
-    if (!ch) { navigate({ to: "/onboarding" }); return; }
+    if (!ch) {
+      navigate({ to: "/onboarding" });
+      return;
+    }
+
     setChallenge(ch);
-    const cins = getCheckInsForChallenge(ch.id);
-    setCheckIns(cins);
+    setCheckIns(getCheckInsForChallenge(ch.id));
     setLoading(false);
-  };
+  }, [navigate]);
 
   const fold = () => {
     if (!challenge) return;
@@ -84,7 +98,9 @@ function Dashboard() {
     navigate({ to: "/folded" });
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    reloadDashboard();
+  }, [reloadDashboard]);
 
   useEffect(() => {
     setDisplayName(getUserDisplayName());
@@ -93,10 +109,12 @@ function Dashboard() {
   const today = challenge ? dayNumber(challenge.start_date) : 0;
   const todayDone = useMemo(
     () => checkIns.some((c) => c.date === todayIso() && c.completed),
-    [checkIns]
+    [checkIns],
   );
   const survivedCount = checkIns.filter((c) => c.completed).length;
-  const hp = challenge ? Math.max(0, Math.min(100, Math.round((survivedCount / TOTAL_DAYS) * 100))) : 0;
+  const hp = challenge
+    ? Math.max(0, Math.min(100, Math.round((survivedCount / TOTAL_DAYS) * 100)))
+    : 0;
 
   useEffect(() => {
     if (!challenge) return;
@@ -123,9 +141,11 @@ function Dashboard() {
     if (!challenge || loading) return;
     if (survivedCount >= TOTAL_DAYS) {
       updateChallenge(challenge.id, { status: "completed" });
-      void syncChallengeReminderState({ ...challenge, status: "completed" }, false).catch((error) => {
-        console.error("Failed to mirror completed challenge", error);
-      });
+      void syncChallengeReminderState({ ...challenge, status: "completed" }, false).catch(
+        (error) => {
+          console.error("Failed to mirror completed challenge", error);
+        },
+      );
       navigate({ to: "/win" });
     }
   }, [survivedCount, challenge, loading, navigate]);
@@ -163,15 +183,17 @@ function Dashboard() {
     displayDay < today
       ? dayMap.get(displayDay)?.completed === true
       : displayDay === today
-      ? todayDone
-      : false;
+        ? todayDone
+        : false;
   const isNewlyUnlocked = newlyUnlockedDay === displayDay;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border">
         <div className="mx-auto max-w-5xl px-6 py-4 flex items-center justify-between">
-          <Link to="/" className="font-display text-2xl"><span className="text-primary">ONLY</span> 66</Link>
+          <Link to="/" className="font-display text-2xl">
+            <span className="text-primary">ONLY</span> 66
+          </Link>
           <div className="flex items-center gap-2">
             <SoundToggle />
             <button
@@ -181,7 +203,6 @@ function Dashboard() {
               Settings
             </button>
           </div>
-
         </div>
       </header>
 
@@ -195,11 +216,15 @@ function Dashboard() {
               </div>
               <h1 className="mt-2 font-display text-4xl uppercase">{challenge.name}</h1>
               {challenge.motivation && (
-                <p className="mt-2 text-sm text-muted-foreground max-w-md">"{challenge.motivation}"</p>
+                <p className="mt-2 text-sm text-muted-foreground max-w-md">
+                  "{challenge.motivation}"
+                </p>
               )}
             </div>
             <div className="text-right">
-              <div className="font-mono text-xs uppercase tracking-widest text-muted-foreground">Survived</div>
+              <div className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+                Survived
+              </div>
               <div className="font-display text-5xl text-primary">{survivedCount}</div>
             </div>
           </div>
@@ -207,7 +232,8 @@ function Dashboard() {
           {/* Survival Meter */}
           <div className="mt-6">
             <div className="flex justify-between font-mono text-xs uppercase tracking-widest text-muted-foreground mb-2">
-              <span>Survival Meter</span><span>{hp}%</span>
+              <span>Survival Meter</span>
+              <span>{hp}%</span>
             </div>
             <div className="h-3 w-full rounded-sm border border-border bg-background overflow-hidden">
               <div
@@ -245,10 +271,13 @@ function Dashboard() {
             [ OPERATIVE STATUS ]
           </div>
           <div className="font-display text-xl uppercase tracking-wider text-foreground drop-shadow-[0_0_8px_oklch(0.62_0.24_25/0.45)]">
-            {displayName
-              ? <>THE RUN CONTINUES, <span className="text-primary">{displayName}</span>.</>
-              : <>THE RUN CONTINUES.</>
-            }
+            {displayName ? (
+              <>
+                THE RUN CONTINUES, <span className="text-primary">{displayName}</span>.
+              </>
+            ) : (
+              <>THE RUN CONTINUES.</>
+            )}
           </div>
         </div>
 
@@ -270,20 +299,25 @@ function Dashboard() {
                 const isClickable = survived || isToday;
                 const isSelected = d === displayDay;
 
-                const base = "aspect-square rounded-sm border flex items-center justify-center font-mono text-[10px] sm:text-xs transition relative";
+                const base =
+                  "aspect-square rounded-sm border flex items-center justify-center font-mono text-[10px] sm:text-xs transition relative";
                 let cls = "";
                 if (survived && isFinal) {
-                  cls = "bg-primary border-[color:var(--color-reward)] text-primary-foreground shadow-[0_0_18px_oklch(0.85_0.18_90/0.6)]";
+                  cls =
+                    "bg-primary border-[color:var(--color-reward)] text-primary-foreground shadow-[0_0_18px_oklch(0.85_0.18_90/0.6)]";
                 } else if (survived) {
                   cls = `bg-primary border-primary text-primary-foreground shadow-[0_0_10px_oklch(0.62_0.24_25/0.55)] ${isMilestone ? "ring-1 ring-[color:var(--color-reward)]" : ""}`;
                 } else if (isToday) {
                   cls = "border-2 border-primary text-primary bg-primary/10 animate-pulse-red";
                 } else if (violated) {
-                  cls = "bg-[oklch(0.25_0.08_25)] border-[oklch(0.4_0.12_25)] text-[oklch(0.55_0.12_25)] line-through";
+                  cls =
+                    "bg-[oklch(0.25_0.08_25)] border-[oklch(0.4_0.12_25)] text-[oklch(0.55_0.12_25)] line-through";
                 } else if (isFinal) {
-                  cls = "border-[color:var(--color-reward)]/70 text-[color:var(--color-reward)] bg-[color:var(--color-reward)]/5";
+                  cls =
+                    "border-[color:var(--color-reward)]/70 text-[color:var(--color-reward)] bg-[color:var(--color-reward)]/5";
                 } else if (isMilestone) {
-                  cls = "border-[color:var(--color-reward)]/40 text-[color:var(--color-reward)]/70 bg-surface";
+                  cls =
+                    "border-[color:var(--color-reward)]/40 text-[color:var(--color-reward)]/70 bg-surface";
                 } else {
                   cls = "border-border/40 bg-surface/40 text-muted-foreground/40";
                 }
@@ -316,7 +350,9 @@ function Dashboard() {
             ["Days left", String(Math.max(0, TOTAL_DAYS - today + 1))],
           ].map(([label, val]) => (
             <div key={label} className="rounded-sm border border-border bg-surface p-4">
-              <div className="font-mono text-xs uppercase tracking-widest text-muted-foreground">{label}</div>
+              <div className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+                {label}
+              </div>
               <div className="mt-1 font-display text-3xl">{val}</div>
             </div>
           ))}
@@ -343,7 +379,11 @@ function Dashboard() {
           challenge={challenge}
           day={today}
           onClose={() => setShowCheckIn(false)}
-          onDone={() => { setShowCheckIn(false); setSelectedDay(null); load(); }}
+          onDone={() => {
+            setShowCheckIn(false);
+            setSelectedDay(null);
+            reloadDashboard();
+          }}
         />
       )}
       {showPanic && (
@@ -360,7 +400,7 @@ function Dashboard() {
           challenge={challenge}
           onClose={() => setShowSettings(false)}
           onChanged={() => {
-            load();
+            reloadDashboard();
             setDisplayName(getUserDisplayName());
           }}
         />
@@ -387,28 +427,30 @@ function TransmissionCard({
       {isUnlocked ? (
         <div className={isNewlyUnlocked ? "animate-quote-flicker" : ""}>
           <p className="text-lg leading-relaxed text-foreground">&ldquo;{quote.text}&rdquo;</p>
-          <p className="mt-4 font-mono text-xs text-muted-foreground tracking-wide">— {quote.author}</p>
+          <p className="mt-4 font-mono text-xs text-muted-foreground tracking-wide">
+            — {quote.author}
+          </p>
         </div>
       ) : (
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <div className="h-px flex-1 bg-primary/30" />
-            <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary/50">locked</span>
+            <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary/50">
+              locked
+            </span>
             <div className="h-px flex-1 bg-primary/30" />
           </div>
           <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground/60 pt-1">
             TRANSMISSION LOCKED
           </p>
-          <p className="font-mono text-xs text-muted-foreground">
-            Survive Day {day} to unlock.
-          </p>
+          <p className="font-mono text-xs text-muted-foreground">Survive Day {day} to unlock.</p>
         </div>
       )}
     </aside>
   );
 }
 
-function currentStreak(cins: CheckIn[]) {
+function currentStreak(cins: LocalCheckIn[]) {
   const byDay = new Map(cins.map((c) => [c.day_number, c]));
   const maxDay = Math.max(0, ...cins.map((c) => c.day_number));
   let s = 0;
@@ -418,11 +460,17 @@ function currentStreak(cins: CheckIn[]) {
   }
   return s;
 }
-function bestStreak(cins: CheckIn[]) {
-  const days = cins.filter((c) => c.completed).map((c) => c.day_number).sort((a, b) => a - b);
-  let best = 0, run = 0, prev = -1;
+function bestStreak(cins: LocalCheckIn[]) {
+  const days = cins
+    .filter((c) => c.completed)
+    .map((c) => c.day_number)
+    .sort((a, b) => a - b);
+  let best = 0,
+    run = 0,
+    prev = -1;
   for (const d of days) {
-    if (d === prev + 1) run++; else run = 1;
+    if (d === prev + 1) run++;
+    else run = 1;
     if (run > best) best = run;
     prev = d;
   }
