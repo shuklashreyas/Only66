@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { todayIso } from "@/lib/day-math";
+import { syncReminderCheckInSnapshot } from "@/lib/api/push.functions";
 import { play } from "@/lib/sound";
-import { createCheckIn, type LocalChallenge } from "@/lib/storage";
+import { createCheckIn, getLocalUser, type LocalChallenge } from "@/lib/storage";
 
 export function CheckInModal({
   challenge,
@@ -26,7 +27,7 @@ export function CheckInModal({
     return () => window.removeEventListener("keydown", onEsc);
   }, [onClose]);
 
-  const submit = () => {
+  const submit = async () => {
     setSubmitting(true);
     try {
       createCheckIn({
@@ -38,6 +39,22 @@ export function CheckInModal({
         almost_folded: almostFolded,
         notes: notes.trim() || null,
       });
+
+      const localUser = getLocalUser();
+      if (localUser) {
+        await syncReminderCheckInSnapshot({
+          data: {
+            localUserId: localUser.id,
+            localChallengeId: challenge.id,
+            date: todayIso(),
+            dayNumber: day,
+            completed: true,
+          },
+        }).catch((error) => {
+          console.error("Failed to mirror reminder check-in", error);
+        });
+      }
+
       play("stamp");
       toast.success(`Day ${day} survived.`);
       onDone();
@@ -50,7 +67,7 @@ export function CheckInModal({
   return (
     <div className="fixed inset-0 z-50 bg-black/80 flex items-end sm:items-center justify-center p-4">
       <div className="w-full max-w-md rounded-sm border border-border bg-surface p-6 animate-slide-up">
-        <div className="font-mono text-xs uppercase tracking-[0.3em] text-[color:var(--color-success)] mb-3">
+        <div className="font-mono text-xs uppercase tracking-[0.3em] text-(--color-success) mb-3">
           [ DAY {day} — STAMP ]
         </div>
         <h2 className="font-display text-3xl uppercase">Survived?</h2>
@@ -63,7 +80,7 @@ export function CheckInModal({
             <input
               type="range" min={1} max={5} value={difficulty}
               onChange={(e) => setDifficulty(Number(e.target.value))}
-              className="w-full accent-[color:var(--color-primary)]"
+              className="w-full accent-(--color-primary)"
             />
           </div>
 
@@ -72,7 +89,7 @@ export function CheckInModal({
               type="checkbox"
               checked={almostFolded}
               onChange={(e) => setAlmostFolded(e.target.checked)}
-              className="size-5 accent-[color:var(--color-primary)]"
+              className="size-5 accent-(--color-primary)"
             />
             <span className="text-sm">Almost folded</span>
           </label>
@@ -97,7 +114,7 @@ export function CheckInModal({
           <button
             disabled={submitting}
             onClick={submit}
-            className="flex-1 rounded-sm bg-[color:var(--color-success)] text-background px-4 py-3 font-display uppercase tracking-wider text-sm disabled:opacity-50"
+            className="flex-1 rounded-sm bg-(--color-success) text-background px-4 py-3 font-display uppercase tracking-wider text-sm disabled:opacity-50"
           >
             {submitting ? "..." : "Stamp it"}
           </button>

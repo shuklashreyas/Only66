@@ -1,10 +1,12 @@
 import { createFileRoute, redirect, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { syncReminderChallengeSnapshot } from "@/lib/api/push.functions";
 import { TOTAL_DAYS, dayNumber, todayIso } from "@/lib/day-math";
-import { pickReminder, pickProtocol, PANIC_LINES, MILESTONES, FINAL_DAY, type Tone } from "@/lib/tone";
+import { pickProtocol, PANIC_LINES, MILESTONES, FINAL_DAY, type Tone } from "@/lib/tone";
+import { getPushReminderState } from "@/lib/push";
 import { pickDailyQuote } from "@/lib/quotes";
-import { getActiveChallengeForUser, getCheckInsForChallenge, getUserDisplayName, updateChallenge, type LocalChallenge, type LocalCheckIn } from "@/lib/storage";
+import { getActiveChallengeForUser, getCheckInsForChallenge, getLocalUser, getUserDisplayName, updateChallenge, type LocalChallenge, type LocalCheckIn } from "@/lib/storage";
 import { CheckInModal } from "@/components/dashboard/CheckInModal";
 import { PanicModal } from "@/components/dashboard/PanicModal";
 import { SettingsSheet } from "@/components/dashboard/SettingsSheet";
@@ -38,6 +40,29 @@ function Dashboard() {
   const hasInitializedRef = useRef(false);
   const prevTodayDoneRef = useRef(false);
 
+  const syncChallengeReminderState = async (nextChallenge: LocalChallenge, notificationEnabled?: boolean) => {
+    const localUser = getLocalUser();
+    if (!localUser) return;
+
+    const pushEnabled = notificationEnabled ?? (await getPushReminderState()).subscribed;
+    await syncReminderChallengeSnapshot({
+      data: {
+        localUserId: localUser.id,
+        displayName: getUserDisplayName(),
+        challenge: {
+          localChallengeId: nextChallenge.id,
+          challengeName: nextChallenge.name,
+          tone: nextChallenge.tone,
+          startDate: nextChallenge.start_date,
+          reminderTime: nextChallenge.reminder_time,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+          status: nextChallenge.status,
+          notificationEnabled: pushEnabled,
+        },
+      },
+    });
+  };
+
   const load = () => {
     const ch = getActiveChallengeForUser();
     if (!ch) { navigate({ to: "/onboarding" }); return; }
@@ -51,6 +76,9 @@ function Dashboard() {
     if (!challenge) return;
 
     updateChallenge(challenge.id, { status: "abandoned" });
+    void syncChallengeReminderState({ ...challenge, status: "abandoned" }, false).catch((error) => {
+      console.error("Failed to mirror abandoned challenge", error);
+    });
     toast("Challenge abandoned.");
     setShowPanic(false);
     navigate({ to: "/folded" });
@@ -70,31 +98,34 @@ function Dashboard() {
   const survivedCount = checkIns.filter((c) => c.completed).length;
   const hp = challenge ? Math.max(0, Math.min(100, Math.round((survivedCount / TOTAL_DAYS) * 100))) : 0;
 
-  // Daily reminder scheduler (in-app)
   useEffect(() => {
     if (!challenge) return;
-    if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
     let cancelled = false;
 
-    const tick = () => {
-      if (cancelled || !challenge) return;
-      const [h, m] = challenge.reminder_time.split(":").map(Number);
-      const now = new Date();
-      if (now.getHours() === h && now.getMinutes() === m) {
-        if (!todayDone) {
-          new Notification("Only 66", { body: pickReminder(challenge.tone, today), tag: "only66-daily" });
+    void (async () => {
+      try {
+        const pushState = await getPushReminderState();
+        if (!cancelled) {
+          await syncChallengeReminderState(challenge, pushState.subscribed);
         }
+      } catch (error) {
+        console.error("Failed to mirror reminder challenge", error);
       }
+    })();
+
+    return () => {
+      cancelled = true;
     };
-    const interval = setInterval(tick, 60000);
-    return () => { cancelled = true; clearInterval(interval); };
-  }, [challenge, todayDone, today]);
+  }, [challenge]);
 
   // Auto-win
   useEffect(() => {
     if (!challenge || loading) return;
     if (survivedCount >= TOTAL_DAYS) {
       updateChallenge(challenge.id, { status: "completed" });
+      void syncChallengeReminderState({ ...challenge, status: "completed" }, false).catch((error) => {
+        console.error("Failed to mirror completed challenge", error);
+      });
       navigate({ to: "/win" });
     }
   }, [survivedCount, challenge, loading, navigate]);

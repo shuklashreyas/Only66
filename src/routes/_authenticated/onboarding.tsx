@@ -1,8 +1,10 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
+import { syncReminderChallengeSnapshot } from "@/lib/api/push.functions";
 import { todayIso } from "@/lib/day-math";
-import { createChallenge, getActiveChallengeForUser, getUserDisplayName, setUserDisplayName } from "@/lib/storage";
+import { enableBackgroundPush } from "@/lib/push";
+import { createChallenge, getActiveChallengeForUser, getLocalUser, getUserDisplayName, setUserDisplayName } from "@/lib/storage";
 import type { Tone } from "@/lib/tone";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
@@ -37,7 +39,7 @@ function Onboarding() {
         setUserDisplayName(displayName);
       }
 
-      createChallenge({
+      const createdChallenge = createChallenge({
         name: name.trim(),
         kind,
         motivation: motivation.trim() || null,
@@ -47,9 +49,35 @@ function Onboarding() {
         status: "active",
       });
 
-      // Request notification permission (non-blocking)
-      if (typeof Notification !== "undefined" && Notification.permission === "default") {
-        try { await Notification.requestPermission(); } catch {}
+      const localUser = getLocalUser();
+      if (localUser) {
+        let notificationEnabled = false;
+
+        try {
+          const pushState = await enableBackgroundPush(localUser.id);
+          notificationEnabled = pushState.subscribed;
+        } catch (error) {
+          console.error("Failed to enable background push during onboarding", error);
+        }
+
+        await syncReminderChallengeSnapshot({
+          data: {
+            localUserId: localUser.id,
+            displayName: getUserDisplayName(),
+            challenge: {
+              localChallengeId: createdChallenge.id,
+              challengeName: createdChallenge.name,
+              tone: createdChallenge.tone,
+              startDate: createdChallenge.start_date,
+              reminderTime: createdChallenge.reminder_time,
+              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+              status: createdChallenge.status,
+              notificationEnabled,
+            },
+          },
+        }).catch((error) => {
+          console.error("Failed to mirror reminder challenge during onboarding", error);
+        });
       }
 
       toast.success("Challenge started!");

@@ -159,6 +159,125 @@ export type Database = {
         }
         Relationships: []
       }
+      push_subscriptions: {
+        Row: {
+          active: boolean
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          last_error: string | null
+          local_user_id: string
+          p256dh: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          last_error?: string | null
+          local_user_id: string
+          p256dh: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          last_error?: string | null
+          local_user_id?: string
+          p256dh?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reminder_challenges: {
+        Row: {
+          challenge_name: string
+          created_at: string
+          display_name: string | null
+          last_notification_sent_on: string | null
+          local_challenge_id: string
+          local_user_id: string
+          notification_enabled: boolean
+          reminder_time: string
+          start_date: string
+          status: Database["public"]["Enums"]["challenge_status"]
+          timezone: string
+          tone: Database["public"]["Enums"]["challenge_tone"]
+          updated_at: string
+        }
+        Insert: {
+          challenge_name: string
+          created_at?: string
+          display_name?: string | null
+          last_notification_sent_on?: string | null
+          local_challenge_id: string
+          local_user_id: string
+          notification_enabled?: boolean
+          reminder_time: string
+          start_date: string
+          status?: Database["public"]["Enums"]["challenge_status"]
+          timezone: string
+          tone: Database["public"]["Enums"]["challenge_tone"]
+          updated_at?: string
+        }
+        Update: {
+          challenge_name?: string
+          created_at?: string
+          display_name?: string | null
+          last_notification_sent_on?: string | null
+          local_challenge_id?: string
+          local_user_id?: string
+          notification_enabled?: boolean
+          reminder_time?: string
+          start_date?: string
+          status?: Database["public"]["Enums"]["challenge_status"]
+          timezone?: string
+          tone?: Database["public"]["Enums"]["challenge_tone"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reminder_check_ins: {
+        Row: {
+          completed: boolean
+          created_at: string
+          date: string
+          day_number: number
+          local_challenge_id: string
+          local_user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          date: string
+          day_number: number
+          local_challenge_id: string
+          local_user_id: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          date?: string
+          day_number?: number
+          local_challenge_id?: string
+          local_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reminder_check_ins_local_challenge_id_fkey"
+            columns: ["local_challenge_id"]
+            isOneToOne: false
+            referencedRelation: "reminder_challenges"
+            referencedColumns: ["local_challenge_id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

@@ -1,1 +1,0 @@
-const r=66;function a(t){const n=new Date(t);return n.setHours(0,0,0,0),n}function s(){const t=a(new Date),n=t.getFullYear(),e=String(t.getMonth()+1).padStart(2,"0"),o=String(t.getDate()).padStart(2,"0");return`${n}-${e}-${o}`}function c(t){const n=a(new Date(t+"T00:00:00")),e=a(new Date);return Math.floor((e.getTime()-n.getTime())/864e5)+1}export{r as T,c as d,s as t};

@@ -53,7 +53,7 @@ function renderErrorPage() {
 let serverEntryPromise;
 async function getServerEntry() {
   if (!serverEntryPromise) {
-    serverEntryPromise = import("./server-DbkIMxaU.mjs").then((n) => n.s).then(
+    serverEntryPromise = import("./server-BDbOBauc.mjs").then((n) => n.s).then(
       (m) => m.default ?? m
     );
   }
@@ -76,6 +76,15 @@ async function normalizeCatastrophicSsrResponse(response) {
 const server = {
   async fetch(request, env, ctx) {
     try {
+      const url = new URL(request.url);
+      if (request.method === "GET" && url.pathname === "/api/push/cron") {
+        const cronSecret = process.env.CRON_SECRET;
+        if (cronSecret && request.headers.get("authorization") !== `Bearer ${cronSecret}`) {
+          return new Response("Unauthorized", { status: 401 });
+        }
+        const { runReminderSweep } = await import("./push.server-C7OQsCv1.mjs");
+        return Response.json(await runReminderSweep());
+      }
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
