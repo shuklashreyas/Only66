@@ -1,6 +1,6 @@
 import { r as reactExports, j as jsxRuntimeExports } from "../_libs/react.mjs";
 import { u as useNavigate, L as Link } from "../_libs/tanstack__react-router.mjs";
-import { d as createLocalUser } from "./router-ARfofR06.mjs";
+import { d as createLocalUser } from "./router-kPZoOEur.mjs";
 import { t as toast } from "../_libs/sonner.mjs";
 import "../_libs/tanstack__router-core.mjs";
 import "../_libs/tanstack__history.mjs";
@@ -17,6 +17,7 @@ import "stream";
 import "../_libs/isbot.mjs";
 import "../_libs/tanstack__query-core.mjs";
 import "../_libs/tanstack__react-query.mjs";
+import "../_libs/lucide-react.mjs";
 function LoginPage() {
   const navigate = useNavigate();
   const [displayName, setDisplayName] = reactExports.useState("");

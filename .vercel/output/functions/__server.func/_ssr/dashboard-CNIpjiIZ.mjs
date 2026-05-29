@@ -2,7 +2,7 @@ import { r as reactExports, j as jsxRuntimeExports } from "../_libs/react.mjs";
 import { u as useNavigate, L as Link } from "../_libs/tanstack__react-router.mjs";
 import { t as toast } from "../_libs/sonner.mjs";
 import { d as dayNumber, t as todayIso, T as TOTAL_DAYS } from "./day-math-OKL4F-bz.mjs";
-import { i as getUserDisplayName, u as updateChallenge, g as getActiveChallengeForUser, e as getCheckInsForChallenge, h as getStoredTheme, T as THEMES, b as createCheckIn, j as setUserDisplayName, s as setStoredTheme, c as clearLocalUser } from "./router-ARfofR06.mjs";
+import { i as getUserDisplayName, u as updateChallenge, g as getActiveChallengeForUser, e as getCheckInsForChallenge, h as getStoredTheme, T as THEMES, b as createCheckIn, j as setUserDisplayName, s as setStoredTheme, c as clearLocalUser } from "./router-kPZoOEur.mjs";
 import { isMuted, play, startTick, stopTick, setMuted, playBgm } from "./sound--O_4J7dP.mjs";
 import "../_libs/tanstack__router-core.mjs";
 import "../_libs/tanstack__history.mjs";
@@ -19,6 +19,7 @@ import "stream";
 import "../_libs/isbot.mjs";
 import "../_libs/tanstack__query-core.mjs";
 import "../_libs/tanstack__react-query.mjs";
+import "../_libs/lucide-react.mjs";
 const TONE_LABELS = {
   strict: "Drill sergeant",
   brutal: "Brutally honest",
@@ -440,7 +441,7 @@ function SettingsSheet({
         )
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "font-mono text-xs uppercase tracking-widest text-muted-foreground mb-2", children: "Theme" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "font-mono text-xs uppercase tracking-widest text-muted-foreground mb-2", children: "THEME" }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "grid gap-2", children: THEMES.map((themeOption) => {
           const selected = themeOption.id === theme;
           return /* @__PURE__ */ jsxRuntimeExports.jsxs(

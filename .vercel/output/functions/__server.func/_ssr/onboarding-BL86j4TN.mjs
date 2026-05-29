@@ -2,7 +2,7 @@ import { r as reactExports, j as jsxRuntimeExports } from "../_libs/react.mjs";
 import { u as useNavigate, L as Link } from "../_libs/tanstack__react-router.mjs";
 import { t as toast } from "../_libs/sonner.mjs";
 import { t as todayIso } from "./day-math-OKL4F-bz.mjs";
-import { i as getUserDisplayName, j as setUserDisplayName, a as createChallenge } from "./router-ARfofR06.mjs";
+import { i as getUserDisplayName, j as setUserDisplayName, a as createChallenge } from "./router-kPZoOEur.mjs";
 import "../_libs/tanstack__router-core.mjs";
 import "../_libs/tanstack__history.mjs";
 import "../_libs/cookie-es.mjs";
@@ -18,6 +18,7 @@ import "stream";
 import "../_libs/isbot.mjs";
 import "../_libs/tanstack__query-core.mjs";
 import "../_libs/tanstack__react-query.mjs";
+import "../_libs/lucide-react.mjs";
 function Onboarding() {
   const navigate = useNavigate();
   const [step, setStep] = reactExports.useState(1);

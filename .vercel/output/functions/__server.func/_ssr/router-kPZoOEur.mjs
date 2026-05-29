@@ -4,6 +4,7 @@ import { b as createRouter, a as createRootRouteWithContext, d as useRouter, L a
 import { G as redirect } from "../_libs/tanstack__router-core.mjs";
 import { j as jsxRuntimeExports, r as reactExports } from "../_libs/react.mjs";
 import { T as Toaster$1 } from "../_libs/sonner.mjs";
+import { a as Globe, G as Github, L as Linkedin } from "../_libs/lucide-react.mjs";
 import "../_libs/react-dom.mjs";
 import "util";
 import "crypto";
@@ -84,7 +85,7 @@ function initTheme() {
   applyTheme(theme);
   return theme;
 }
-const appCss = "/assets/styles-DRIVwUla.css";
+const appCss = "/assets/styles-Diqsm4QG.css";
 function NotFoundComponent() {
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex min-h-screen items-center justify-center bg-background px-4", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "max-w-md text-center", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "text-7xl font-display text-primary", children: "404" }),
@@ -188,7 +189,47 @@ function RootComponent() {
     });
   }, []);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(QueryClientProvider, { client: queryClient, children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx(Outlet, {}),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "min-h-screen flex flex-col bg-background text-foreground", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex-1 pb-20 sm:pb-16", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Outlet, {}) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("footer", { className: "fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur-sm", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mx-auto flex max-w-5xl flex-col gap-3 px-6 py-4 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground", children: "Copyright Shreyas Shukla" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-center justify-center gap-3 text-xs font-mono uppercase tracking-[0.2em] text-muted-foreground sm:justify-end", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "a",
+            {
+              href: "https://www.shuklashreyas.com/",
+              target: "_blank",
+              rel: "noreferrer",
+              "aria-label": "Shreyas Shukla website",
+              className: "flex h-9 w-9 items-center justify-center rounded-sm border border-border bg-surface text-muted-foreground transition hover:border-primary hover:text-primary",
+              children: /* @__PURE__ */ jsxRuntimeExports.jsx(Globe, { className: "h-4 w-4" })
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "a",
+            {
+              href: "https://github.com/shuklashreyas",
+              target: "_blank",
+              rel: "noreferrer",
+              "aria-label": "Shreyas Shukla GitHub",
+              className: "flex h-9 w-9 items-center justify-center rounded-sm border border-border bg-surface text-muted-foreground transition hover:border-primary hover:text-primary",
+              children: /* @__PURE__ */ jsxRuntimeExports.jsx(Github, { className: "h-4 w-4" })
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "a",
+            {
+              href: "https://www.linkedin.com/in/shreyas-shukla26/",
+              target: "_blank",
+              rel: "noreferrer",
+              "aria-label": "Shreyas Shukla LinkedIn",
+              className: "flex h-9 w-9 items-center justify-center rounded-sm border border-border bg-surface text-muted-foreground transition hover:border-primary hover:text-primary",
+              children: /* @__PURE__ */ jsxRuntimeExports.jsx(Linkedin, { className: "h-4 w-4" })
+            }
+          )
+        ] })
+      ] }) })
+    ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(Toaster, {})
   ] });
 }
@@ -312,7 +353,7 @@ function createCheckIn(data) {
 function generateId() {
   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
-const $$splitComponentImporter$6 = () => import("./login-C9ndOrMo.mjs");
+const $$splitComponentImporter$6 = () => import("./login-UTd3m2tS.mjs");
 const Route$6 = createFileRoute("/login")({
   head: () => ({
     meta: [{
@@ -378,7 +419,7 @@ const Route$4 = createFileRoute("/")({
   }),
   component: lazyRouteComponent($$splitComponentImporter$4, "component")
 });
-const $$splitComponentImporter$3 = () => import("./win-DvMCzm3M.mjs");
+const $$splitComponentImporter$3 = () => import("./win-DEvA1jZX.mjs");
 const Route$3 = createFileRoute("/_authenticated/win")({
   head: () => ({
     meta: [{
@@ -387,7 +428,7 @@ const Route$3 = createFileRoute("/_authenticated/win")({
   }),
   component: lazyRouteComponent($$splitComponentImporter$3, "component")
 });
-const $$splitComponentImporter$2 = () => import("./onboarding-CtX8OP17.mjs");
+const $$splitComponentImporter$2 = () => import("./onboarding-BL86j4TN.mjs");
 const Route$2 = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
     meta: [{
@@ -405,7 +446,7 @@ const Route$2 = createFileRoute("/_authenticated/onboarding")({
   },
   component: lazyRouteComponent($$splitComponentImporter$2, "component")
 });
-const $$splitComponentImporter$1 = () => import("./folded-CFuLyjj4.mjs");
+const $$splitComponentImporter$1 = () => import("./folded-CAbL3FGl.mjs");
 const Route$1 = createFileRoute("/_authenticated/folded")({
   head: () => ({
     meta: [{
@@ -425,7 +466,7 @@ const Route$1 = createFileRoute("/_authenticated/folded")({
   },
   component: lazyRouteComponent($$splitComponentImporter$1, "component")
 });
-const $$splitComponentImporter = () => import("./dashboard-BAm6tKuW.mjs");
+const $$splitComponentImporter = () => import("./dashboard-CNIpjiIZ.mjs");
 const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [{
