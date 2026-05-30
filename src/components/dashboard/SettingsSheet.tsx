@@ -20,6 +20,7 @@ import {
 
 type NotificationStatusKey =
   | "push_connected"
+  | "push_not_configured"
   | "notifications_not_enabled"
   | "permission_denied"
   | "unsupported_browser"
@@ -29,6 +30,7 @@ type NotificationStatusKey =
 
 const NOTIFICATION_STATUS_LABELS: Record<NotificationStatusKey, string> = {
   push_connected: "Push connected",
+  push_not_configured: "Push not configured",
   notifications_not_enabled: "Notifications not enabled",
   permission_denied: "Permission denied",
   unsupported_browser: "Unsupported browser",
@@ -56,6 +58,7 @@ export function SettingsSheet({
   const [displayName, setDisplayName] = useState(getUserDisplayName() ?? "");
   const [theme, setTheme] = useState<AppTheme>(getStoredTheme());
   const [pushSupported, setPushSupported] = useState(true);
+  const [pushConfigured, setPushConfigured] = useState(true);
   const [pushEnabled, setPushEnabled] = useState(false);
   const [pushPermission, setPushPermission] = useState<NotificationPermission | "unsupported">(
     "default",
@@ -91,11 +94,20 @@ export function SettingsSheet({
   const applyBrowserState = useCallback(
     (state: PushReminderState) => {
       setPushSupported(state.supported);
+      setPushConfigured(state.configured);
       setPushEnabled(state.subscribed);
       setPushPermission(state.permission);
       setServiceWorkerRegistered(state.serviceWorkerRegistered);
       setSubscriptionEndpoint(state.endpoint);
 
+      if (!state.configured) {
+        setStatus(
+          "push_not_configured",
+          state.configurationError ||
+            "Push reminders are disabled for this deployment because VITE_VAPID_PUBLIC_KEY is missing.",
+        );
+        return;
+      }
       if (!state.supported) {
         setStatus(
           "unsupported_browser",
@@ -397,7 +409,7 @@ export function SettingsSheet({
             </div>
             <button
               onClick={enablePushReminders}
-              disabled={pushBusy || !pushSupported}
+              disabled={pushBusy || !pushSupported || !pushConfigured}
               className={`w-full rounded-sm border bg-background px-3 py-2 text-sm font-mono uppercase tracking-widest transition disabled:opacity-50 ${
                 pushEnabled
                   ? "border-primary text-primary shadow-[0_0_14px_color-mix(in_srgb,var(--primary)_35%,transparent)]"
@@ -406,9 +418,11 @@ export function SettingsSheet({
             >
               {pushBusy
                 ? "Connecting push..."
-                : pushEnabled
-                  ? "Background push connected"
-                  : "Enable background push reminders"}
+                : !pushConfigured
+                  ? "Push not configured"
+                  : pushEnabled
+                    ? "Background push connected"
+                    : "Enable background push reminders"}
             </button>
             <button
               onClick={sendTestNotification}
@@ -424,11 +438,13 @@ export function SettingsSheet({
               SMS reminders — coming soon
             </button>
             <p className="text-xs font-mono text-muted-foreground">
-              {pushSupported
-                ? pushEnabled
-                  ? "Service worker + Push API are active for this browser."
-                  : "Push reminders work even when the tab is closed once connected."
-                : "This browser does not support background push reminders."}
+              {!pushConfigured
+                ? "Push reminders are disabled for this deployment until VITE_VAPID_PUBLIC_KEY is configured."
+                : pushSupported
+                  ? pushEnabled
+                    ? "Service worker + Push API are active for this browser."
+                    : "Push reminders work even when the tab is closed once connected."
+                  : "This browser does not support background push reminders."}
             </p>
           </div>
 
@@ -438,6 +454,10 @@ export function SettingsSheet({
                 Push debug
               </div>
               <div className="grid gap-1 text-xs font-mono text-muted-foreground">
+                <div>
+                  Push configured:{" "}
+                  <span className="text-foreground">{pushConfigured ? "yes" : "no"}</span>
+                </div>
                 <div>
                   Notification permission: <span className="text-foreground">{pushPermission}</span>
                 </div>

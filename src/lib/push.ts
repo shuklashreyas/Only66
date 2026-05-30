@@ -5,6 +5,8 @@ import {
 
 export type PushReminderState = {
   supported: boolean;
+  configured: boolean;
+  configurationError: string | null;
   permission: NotificationPermission | "unsupported";
   subscribed: boolean;
   serviceWorkerRegistered: boolean;
@@ -23,6 +25,8 @@ async function getServiceWorkerRegistration() {
 }
 
 export async function getPushReminderState(): Promise<PushReminderState> {
+  const publicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+
   if (
     typeof window === "undefined" ||
     !("serviceWorker" in navigator) ||
@@ -30,6 +34,10 @@ export async function getPushReminderState(): Promise<PushReminderState> {
   ) {
     return {
       supported: false,
+      configured: Boolean(publicKey),
+      configurationError: publicKey
+        ? null
+        : "Push is not configured. Missing VITE_VAPID_PUBLIC_KEY.",
       permission: "unsupported",
       subscribed: false,
       serviceWorkerRegistered: false,
@@ -42,6 +50,8 @@ export async function getPushReminderState(): Promise<PushReminderState> {
 
   return {
     supported: true,
+    configured: Boolean(publicKey),
+    configurationError: publicKey ? null : "Push is not configured. Missing VITE_VAPID_PUBLIC_KEY.",
     permission: Notification.permission,
     subscribed: Boolean(subscription),
     serviceWorkerRegistered: true,
@@ -57,6 +67,8 @@ export async function enableBackgroundPush(localUserId: string): Promise<PushRem
   ) {
     return {
       supported: false,
+      configured: false,
+      configurationError: "Push is not configured in this browser context.",
       permission: "unsupported",
       subscribed: false,
       serviceWorkerRegistered: false,
@@ -66,7 +78,9 @@ export async function enableBackgroundPush(localUserId: string): Promise<PushRem
 
   const publicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
   if (!publicKey) {
-    throw new Error("Missing VITE_VAPID_PUBLIC_KEY.");
+    throw new Error(
+      "Push notifications are not configured for this deployment. Missing VITE_VAPID_PUBLIC_KEY.",
+    );
   }
 
   const registration = await getServiceWorkerRegistration();
@@ -79,6 +93,8 @@ export async function enableBackgroundPush(localUserId: string): Promise<PushRem
   if (permission !== "granted") {
     return {
       supported: true,
+      configured: true,
+      configurationError: null,
       permission,
       subscribed: false,
       serviceWorkerRegistered: true,
@@ -110,6 +126,8 @@ export async function enableBackgroundPush(localUserId: string): Promise<PushRem
 
   return {
     supported: true,
+    configured: true,
+    configurationError: null,
     permission,
     subscribed: true,
     serviceWorkerRegistered: true,
@@ -125,6 +143,10 @@ export async function disableBackgroundPush(): Promise<PushReminderState> {
   ) {
     return {
       supported: false,
+      configured: Boolean(import.meta.env.VITE_VAPID_PUBLIC_KEY),
+      configurationError: import.meta.env.VITE_VAPID_PUBLIC_KEY
+        ? null
+        : "Push is not configured. Missing VITE_VAPID_PUBLIC_KEY.",
       permission: "unsupported",
       subscribed: false,
       serviceWorkerRegistered: false,
@@ -142,6 +164,10 @@ export async function disableBackgroundPush(): Promise<PushReminderState> {
 
   return {
     supported: true,
+    configured: Boolean(import.meta.env.VITE_VAPID_PUBLIC_KEY),
+    configurationError: import.meta.env.VITE_VAPID_PUBLIC_KEY
+      ? null
+      : "Push is not configured. Missing VITE_VAPID_PUBLIC_KEY.",
     permission: Notification.permission,
     subscribed: false,
     serviceWorkerRegistered: true,

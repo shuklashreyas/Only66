@@ -6,7 +6,7 @@ Only66 now supports real background browser push notifications using:
 - Push API subscription in the browser
 - VAPID-authenticated Web Push delivery from the server
 - Supabase as the reminder/push mirror store
-- Vercel cron hitting `/api/push/cron`
+- a scheduled HTTP trigger hitting `/api/push/cron`
 
 The app still uses localStorage as the UI source of truth. Only reminder-critical state is mirrored to Supabase for background delivery.
 
@@ -18,7 +18,7 @@ The app still uses localStorage as the UI source of truth. Only reminder-critica
 4. The subscription is sent to the backend and stored in `push_subscriptions`.
 5. The current challenge reminder state is mirrored into `reminder_challenges`.
 6. Check-ins are mirrored into `reminder_check_ins`.
-7. Vercel cron calls `/api/push/cron` every minute.
+7. An external scheduler, or a Vercel plan that supports Cron Jobs, calls `/api/push/cron` on your chosen schedule.
 8. The server checks each mirrored active challenge in the user timezone.
 9. If the local reminder time matches, no check-in exists today, and a duplicate log does not already exist, the server sends Web Push.
 10. The service worker receives the push event and shows the notification.
@@ -36,6 +36,15 @@ Server only:
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `CRON_SECRET` optional but recommended
+
+If you want production push reminders to work on Vercel, add these exact environment variables in the Vercel project settings:
+
+- `VITE_VAPID_PUBLIC_KEY`
+- `VAPID_PRIVATE_KEY`
+- `VAPID_SUBJECT`
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `CRON_SECRET` if you want the cron endpoint protected
 
 ## Generate VAPID Keys
 
@@ -90,8 +99,8 @@ If `CRON_SECRET` is unset, the endpoint still works but logs a warning.
 
 ## Production Testing
 
-1. Add all env vars in Vercel.
-2. Deploy with `vercel.json` included.
+1. Add all required env vars in Vercel.
+2. Configure an external scheduler to call `/api/push/cron`, or use a Vercel plan that supports Cron Jobs.
 3. Apply the Supabase migration in production.
 4. Enable push from the live app in a supported browser.
 5. Use `Send Test Notification` to verify:
@@ -127,3 +136,4 @@ Reminder time is interpreted in the user timezone on the server using `Intl.Date
 - If the user clears localStorage, the UI and mirror can drift until the next save/check-in sync.
 - Safari/iOS/macOS push support still depends on platform/browser version and user settings.
 - Push is browser/device specific. Each browser instance needs its own subscription.
+- Scheduled reminders require an external scheduler unless your Vercel plan supports Cron Jobs.
