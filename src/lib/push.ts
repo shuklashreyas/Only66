@@ -6,12 +6,41 @@ import {
 export type PushReminderState = {
   supported: boolean;
   configured: boolean;
+  configurationStatus: "present" | "missing" | "invalid";
   configurationError: string | null;
   permission: NotificationPermission | "unsupported";
   subscribed: boolean;
   serviceWorkerRegistered: boolean;
   endpoint: string | null;
 };
+
+function getPushConfiguration(publicKey: string | undefined) {
+  const value = publicKey?.trim();
+
+  if (!value) {
+    return {
+      configured: false,
+      configurationStatus: "missing" as const,
+      configurationError: "Push is not configured. Missing VITE_VAPID_PUBLIC_KEY.",
+    };
+  }
+
+  const isLikelyVapidPublicKey = /^[A-Za-z0-9_-]{80,120}$/.test(value);
+  if (!isLikelyVapidPublicKey) {
+    return {
+      configured: false,
+      configurationStatus: "invalid" as const,
+      configurationError:
+        "Push is configured, but VITE_VAPID_PUBLIC_KEY looks malformed in this deployment.",
+    };
+  }
+
+  return {
+    configured: true,
+    configurationStatus: "present" as const,
+    configurationError: null,
+  };
+}
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -26,6 +55,7 @@ async function getServiceWorkerRegistration() {
 
 export async function getPushReminderState(): Promise<PushReminderState> {
   const publicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+  const configuration = getPushConfiguration(publicKey);
 
   if (
     typeof window === "undefined" ||
@@ -34,10 +64,9 @@ export async function getPushReminderState(): Promise<PushReminderState> {
   ) {
     return {
       supported: false,
-      configured: Boolean(publicKey),
-      configurationError: publicKey
-        ? null
-        : "Push is not configured. Missing VITE_VAPID_PUBLIC_KEY.",
+      configured: configuration.configured,
+      configurationStatus: configuration.configurationStatus,
+      configurationError: configuration.configurationError,
       permission: "unsupported",
       subscribed: false,
       serviceWorkerRegistered: false,
@@ -50,8 +79,9 @@ export async function getPushReminderState(): Promise<PushReminderState> {
 
   return {
     supported: true,
-    configured: Boolean(publicKey),
-    configurationError: publicKey ? null : "Push is not configured. Missing VITE_VAPID_PUBLIC_KEY.",
+    configured: configuration.configured,
+    configurationStatus: configuration.configurationStatus,
+    configurationError: configuration.configurationError,
     permission: Notification.permission,
     subscribed: Boolean(subscription),
     serviceWorkerRegistered: true,
@@ -68,6 +98,7 @@ export async function enableBackgroundPush(localUserId: string): Promise<PushRem
     return {
       supported: false,
       configured: false,
+      configurationStatus: "missing",
       configurationError: "Push is not configured in this browser context.",
       permission: "unsupported",
       subscribed: false,
@@ -77,9 +108,11 @@ export async function enableBackgroundPush(localUserId: string): Promise<PushRem
   }
 
   const publicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-  if (!publicKey) {
+  const configuration = getPushConfiguration(publicKey);
+  if (!configuration.configured) {
     throw new Error(
-      "Push notifications are not configured for this deployment. Missing VITE_VAPID_PUBLIC_KEY.",
+      configuration.configurationError ||
+        "Push notifications are not configured for this deployment.",
     );
   }
 
@@ -94,6 +127,7 @@ export async function enableBackgroundPush(localUserId: string): Promise<PushRem
     return {
       supported: true,
       configured: true,
+      configurationStatus: "present",
       configurationError: null,
       permission,
       subscribed: false,
@@ -127,6 +161,7 @@ export async function enableBackgroundPush(localUserId: string): Promise<PushRem
   return {
     supported: true,
     configured: true,
+    configurationStatus: "present",
     configurationError: null,
     permission,
     subscribed: true,
@@ -141,12 +176,12 @@ export async function disableBackgroundPush(): Promise<PushReminderState> {
     !("serviceWorker" in navigator) ||
     !("PushManager" in window)
   ) {
+    const configuration = getPushConfiguration(import.meta.env.VITE_VAPID_PUBLIC_KEY);
     return {
       supported: false,
-      configured: Boolean(import.meta.env.VITE_VAPID_PUBLIC_KEY),
-      configurationError: import.meta.env.VITE_VAPID_PUBLIC_KEY
-        ? null
-        : "Push is not configured. Missing VITE_VAPID_PUBLIC_KEY.",
+      configured: configuration.configured,
+      configurationStatus: configuration.configurationStatus,
+      configurationError: configuration.configurationError,
       permission: "unsupported",
       subscribed: false,
       serviceWorkerRegistered: false,
@@ -162,12 +197,12 @@ export async function disableBackgroundPush(): Promise<PushReminderState> {
     await deactivatePushSubscriptionByEndpoint({ data: { endpoint } });
   }
 
+  const configuration = getPushConfiguration(import.meta.env.VITE_VAPID_PUBLIC_KEY);
   return {
     supported: true,
-    configured: Boolean(import.meta.env.VITE_VAPID_PUBLIC_KEY),
-    configurationError: import.meta.env.VITE_VAPID_PUBLIC_KEY
-      ? null
-      : "Push is not configured. Missing VITE_VAPID_PUBLIC_KEY.",
+    configured: configuration.configured,
+    configurationStatus: configuration.configurationStatus,
+    configurationError: configuration.configurationError,
     permission: Notification.permission,
     subscribed: false,
     serviceWorkerRegistered: true,

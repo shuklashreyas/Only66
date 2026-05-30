@@ -39,6 +39,12 @@ const NOTIFICATION_STATUS_LABELS: Record<NotificationStatusKey, string> = {
   reminder_sync_failed: "Reminder sync failed",
 };
 
+const PUSH_CONFIGURATION_LABELS = {
+  present: "present",
+  missing: "missing",
+  invalid: "invalid",
+} as const;
+
 function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
 }
@@ -59,6 +65,8 @@ export function SettingsSheet({
   const [theme, setTheme] = useState<AppTheme>(getStoredTheme());
   const [pushSupported, setPushSupported] = useState(true);
   const [pushConfigured, setPushConfigured] = useState(true);
+  const [pushConfigurationStatus, setPushConfigurationStatus] =
+    useState<PushReminderState["configurationStatus"]>("missing");
   const [pushEnabled, setPushEnabled] = useState(false);
   const [pushPermission, setPushPermission] = useState<NotificationPermission | "unsupported">(
     "default",
@@ -95,6 +103,7 @@ export function SettingsSheet({
     (state: PushReminderState) => {
       setPushSupported(state.supported);
       setPushConfigured(state.configured);
+      setPushConfigurationStatus(state.configurationStatus);
       setPushEnabled(state.subscribed);
       setPushPermission(state.permission);
       setServiceWorkerRegistered(state.serviceWorkerRegistered);
@@ -406,6 +415,9 @@ export function SettingsSheet({
               {notificationStatusDetail && (
                 <p className="mt-2 text-xs text-muted-foreground">{notificationStatusDetail}</p>
               )}
+              <p className="mt-2 text-xs font-mono text-muted-foreground">
+                Client VAPID key: {PUSH_CONFIGURATION_LABELS[pushConfigurationStatus]}
+              </p>
             </div>
             <button
               onClick={enablePushReminders}
@@ -448,7 +460,7 @@ export function SettingsSheet({
             </p>
           </div>
 
-          {import.meta.env.DEV && (
+          {
             <div className="rounded-sm border border-border bg-background p-4 space-y-2">
               <div className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
                 Push debug
@@ -457,6 +469,12 @@ export function SettingsSheet({
                 <div>
                   Push configured:{" "}
                   <span className="text-foreground">{pushConfigured ? "yes" : "no"}</span>
+                </div>
+                <div>
+                  Client VAPID key status:{" "}
+                  <span className="text-foreground">
+                    {PUSH_CONFIGURATION_LABELS[pushConfigurationStatus]}
+                  </span>
                 </div>
                 <div>
                   Notification permission: <span className="text-foreground">{pushPermission}</span>
@@ -489,7 +507,7 @@ export function SettingsSheet({
                 </div>
               </div>
             </div>
-          )}
+          }
 
           <button
             onClick={save}
