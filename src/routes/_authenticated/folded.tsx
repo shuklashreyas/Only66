@@ -47,8 +47,8 @@ function FoldedPage() {
           </div>
           <h1 className="font-display text-7xl uppercase">You folded.</h1>
           <p className="mt-6 text-lg text-muted-foreground">
-            <span className="text-foreground font-semibold">{name}</span> beat you this round.
-            The grid remembers. Start over if you want another shot at 66.
+            <span className="text-foreground font-semibold">{name}</span> beat you this round. The
+            grid remembers. Start over if you want another shot at 66.
           </p>
           <div className="mt-10 flex flex-wrap gap-3 justify-center">
             <button

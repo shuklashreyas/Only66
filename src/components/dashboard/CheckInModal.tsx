@@ -58,8 +58,8 @@ export function CheckInModal({
       play("stamp");
       toast.success(`Day ${day} survived.`);
       onDone();
-    } catch (err: any) {
-      toast.error(err.message || "Could not save");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not save");
       setSubmitting(false);
     }
   };
@@ -78,7 +78,10 @@ export function CheckInModal({
               How hard? ({difficulty}/5)
             </div>
             <input
-              type="range" min={1} max={5} value={difficulty}
+              type="range"
+              min={1}
+              max={5}
+              value={difficulty}
               onChange={(e) => setDifficulty(Number(e.target.value))}
               className="w-full accent-(--color-primary)"
             />

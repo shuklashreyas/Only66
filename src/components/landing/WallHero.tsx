@@ -27,10 +27,7 @@ export function WallHero() {
       <div aria-hidden className="absolute inset-0 wall-scanlines opacity-40 pointer-events-none" />
 
       {/* The grid in 3D perspective */}
-      <div
-        className="relative w-full max-w-[560px] aspect-[11/7] wall-perspective"
-        aria-hidden
-      >
+      <div className="relative w-full max-w-[560px] aspect-[11/7] wall-perspective" aria-hidden>
         <div className="wall-tilt absolute inset-0">
           <div
             className="grid h-full w-full gap-[6px]"
@@ -45,8 +42,7 @@ export function WallHero() {
               const isFinal = day === TOTAL;
               const isMilestone = day === 22 || day === 44;
 
-              let cls =
-                "border border-border/40 bg-surface/30 text-muted-foreground/40";
+              let cls = "border border-border/40 bg-surface/30 text-muted-foreground/40";
               let label: string | null = null;
 
               if (isStart) {

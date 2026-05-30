@@ -36,14 +36,14 @@ function LoginPage() {
         setLoading(false);
         return;
       }
-      
+
       // Create local user
       createLocalUser(name);
       toast.success(`Welcome, ${name}!`);
       await navigate({ to: "/onboarding", replace: true });
       setLoading(false);
-    } catch (err: any) {
-      toast.error(err.message || "Could not sign in");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not sign in");
       setLoading(false);
     }
   };
@@ -63,9 +63,7 @@ function LoginPage() {
           <div className="font-mono text-xs uppercase tracking-[0.3em] text-primary mb-4">
             [ ENLIST ]
           </div>
-          <h1 className="font-display text-4xl uppercase mb-8">
-            Join the streak
-          </h1>
+          <h1 className="font-display text-4xl uppercase mb-8">Join the streak</h1>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -100,4 +98,3 @@ function LoginPage() {
     </div>
   );
 }
-

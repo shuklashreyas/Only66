@@ -28,7 +28,9 @@ export const THEMES: { id: AppTheme; name: string; description: string }[] = [
 ];
 
 function isTheme(value: string): value is AppTheme {
-  return value === "bloodline" || value === "neon-arena" || value === "iron-mode" || value === "gold-run";
+  return (
+    value === "bloodline" || value === "neon-arena" || value === "iron-mode" || value === "gold-run"
+  );
 }
 
 export function getStoredTheme(): AppTheme {

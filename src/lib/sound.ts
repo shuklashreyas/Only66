@@ -96,6 +96,6 @@ export function wireGlobalClickSound() {
       if ((btn as HTMLElement).dataset.noSfx === "1") return;
       play("click");
     },
-    true
+    true,
   );
 }

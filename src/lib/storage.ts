@@ -176,13 +176,10 @@ export function getCheckInsForChallenge(challengeId: string): LocalCheckIn[] {
 
 export function getCheckInByDateAndChallenge(
   challengeId: string,
-  date: string
+  date: string,
 ): LocalCheckIn | null {
   const checkIns = getCheckIns();
-  return (
-    checkIns.find((c) => c.challenge_id === challengeId && c.date === date) ??
-    null
-  );
+  return checkIns.find((c) => c.challenge_id === challengeId && c.date === date) ?? null;
 }
 
 export function createCheckIn(data: Omit<LocalCheckIn, "id" | "createdAt">): LocalCheckIn {
