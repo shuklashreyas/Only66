@@ -34,10 +34,12 @@ function getRelativeTslibImport(filePath) {
 async function main() {
   const rootStats = await stat(functionRoot).catch(() => null);
   if (!rootStats?.isDirectory()) {
+    console.log("Fixed Vercel runtime imports: skipped (no Vercel function output found)");
     return;
   }
 
   const files = await walk(functionRoot);
+  let rewrittenFiles = 0;
   await Promise.all(
     files.map(async (filePath) => {
       const source = await readFile(filePath, "utf8");
@@ -59,9 +61,12 @@ async function main() {
 
       if (updated !== source) {
         await writeFile(filePath, updated, "utf8");
+        rewrittenFiles += 1;
       }
     }),
   );
+
+  console.log(`Fixed Vercel runtime imports (${rewrittenFiles} files)`);
 }
 
 await main();

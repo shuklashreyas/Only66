@@ -5,9 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build",
+    "build": "vite build && node scripts/fix-vercel-runtime-imports.mjs",
     "build:dev": "vite build --mode development",
-    "postbuild": "node scripts/fix-vercel-runtime-imports.mjs",
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write ."
